@@ -1,3 +1,5 @@
-*out
+*.out
+*.dat
+*.f
 .ipynb_checkpoints/
 build/
