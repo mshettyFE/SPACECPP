@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
+project(SPACECPP)
+file(GLOB FPSource src/FileParser.cpp)
+set(FileParseName ${CMAKE_PROJECT_NAME}FileParser)
+add_library(${FileParseName} SHARED ${FPSource})
+target_include_directories (${CMAKE_PROJECT_NAME}FileParser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(SPACE src/main.cpp)
+target_link_libraries(SPACE ${FileParseName})
