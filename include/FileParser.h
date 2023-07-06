@@ -1,3 +1,8 @@
+#ifndef DOCTEST_CONFIG_IMPLEMENT
+#define DOCTEST_CONFIG_IMPLEMENT
+#include "doctest.h"
+#endif
+
 #ifndef FileParser
 #define FileParser
 
