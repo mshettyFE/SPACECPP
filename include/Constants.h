@@ -3,19 +3,20 @@
 
 #include <vector>
 #include <string>
-
-    int ng1 = 1319;
-    int ng2 = 2;
-    int ng1g2= 2000;
-    int npart=120000;
-    int ngridd=256;
-    int NJ = 400;
-    int NG = 128;
-    int NTY=10;
-    int nup=19;
-    int nup1=19;
-    int nharmh=1320;
+#include <cmath>
     
+    const double pi = acos(-1);
+    // in meters per second
+    const double c = 299792458;
+    // Mass of electron in eV
+    const double ElectronRestMass = 0.510998910;
+    // Classical electron radius in m
+    const double ClassicalElectronRadius = 2.8179409*1E-15;
+    // Charge of electron in C
+    const double ElectronCharge = 1.60217733E-19;
+    // I don't know where the below came from???
+
+
     const std::vector<std::string> OutputFileNames = {
         "Absbunchmode0_1.dat",
         "Absbunchmode2_3.dat",

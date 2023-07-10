@@ -1,4 +1,5 @@
 # SPACECPP
+Utilizes doctest and MPI
 # Compiling
 Need to specify location of mpiicxx compiler. For NSLS-II, this is located at
 `

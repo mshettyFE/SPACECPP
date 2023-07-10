@@ -1,48 +1,60 @@
-50000       nturns 
-20000       npop
-3d9         E0
-3.6d6         vrf
-1320        nharm 
-504.412d6   frf
-0.5d0       Aver_curr
-0           igap
-1320        Mygap 
-7.88d-4        sig_d
-5.951d-5     alpha_C 
-1.352d6     Uloss
-1.81d0         rjs
-3d0         rm
-1d0         frad  
-100         kon
-1d0         factor 
-1d0         fact_M
-1d0         fact_L
-1d0         fact_R
-0d0         detun_M_fact
-0d0         detun_R_fact
-49d3              det_freq
-0.0d0             dphysinch 
-0d3         dvgr
-0.0d0       dps_1
-0.0d0       dps_2
-0d0         theLdrg_1
-0d0         theLdrg_2
-30          nturns_plotres
-200         nturnon
-200         nturnsmooth
-1           nhist
-2           ntayl
-31d-12      sig_tau_op
-7.546d6       RS
-100000       Q
-1           nrfmain
-1           nrfharm
-11236.4d0   betac
-33375d6     R0
-750d6       Q0
-400d-12    rangetau
-50          JCZ
-22133277d0  seed1
+50000       nturns                 Number of turns around ring
+20000       npop                   Number of particles 
+1320        nbunches               Number of bunches
+3d9         E0                     Reference particle energy (eV)
+3.6d6         vrf                  Voltage of main cavity (V)
+1320        nharm                  Harmonic number of main cavity
+504.412d6   frf                    rf frequency of ring
+0.5d0       Aver_curr              Average current of beam (A)
+0           igap                   RF bucket gap
+1320        MyGap                  ! Not needed!
+7.88d-4        sig_d               Momentum spread of detector (dimensionless)
+5.951d-5     alpha_C               Momentum compaction (dimensionless)
+1.352d6     Uloss                  Energy loss per turn (eV)
+1.81d0         rjs                 Longitudinal rad partition number
+3d0         rm                     order of higher harmonic cavity
+1d0         frad                   scales longitudinal radiation damping for first kon turns
+100         kon                    the number of turns radiation damping is artificially modified
+1d0         factor                 !Doesn't do anything
+1d0         fact_M                 Scaling factor of beam-loading in main cavity
+1d0         fact_L                 Scaling factor of beam-loading in harmonic cavity
+1d0         fact_R                 ! Not needed!
+0d0         detun_M_fact           Used to offset detuning frequency of main cavity
+0d0         detun_R_fact           Used to offset detuning frequency of hhc
+49d3              det_freq         Detuning frequenccy of harmonic cavity
+0.0d0             dphysinch        Used to offset synchronous phase
+0d3         dvgr                   !Not needed! (Offset generator voltage)
+0.0d0       dps_1                  !Not needed! )off set in synchronous phase 
+0.0d0       dps_2                  !Not needed! )off set in synchronous phase
+0d0         theLdrg_1              Load angle (difference between RF and generator voltage) in degrees of main cavity 1
+0d0         theLdrg_2              Load angle in degrees of main cavity 2
+30          nturns_plotres         !NOt needed!
+200         nturnon                Turns on beam-loading compensation
+200         nturnsmooth            Turns on beam-loading compensation smoothly?
+1           nhist                  How many turns back in history you need to calculate the voltage
+2           ntayl                  !Not needed! 
+31d-12      sig_tau_op             Optimal bunch length of HHC
+7.546d6       RS                   Shunt Impedence of HHC
+100000       Q                     Quality factor HHC
+1           nrfmain                number of main cavities
+1           nrfharm                number of harmonic cavities
+11236.4d0   betac                  beta coupling of main cavity
+33375d6     R0                     Unloaded shunt impedence of main cavity
+750d6       Q0                     Unloaded quality factor
+400d-12    rangetau                Longitudinal grid size (in seconds)
+50          JCZ                    Number of Fourier coeffs in long. dist.
+22133277d0  seed1          Random number seeds
 45954537d0  seed2
 22377775d0  seed3
-78983324d0  seed4  
+78983324d0  seed4
+1319        ng1
+2           ng2
+2000        ng1g2
+120000      npart
+256         ngridd
+400         NJ
+128         NG
+10          NTY
+19          nup
+19          nup1
+1320        nharmh
