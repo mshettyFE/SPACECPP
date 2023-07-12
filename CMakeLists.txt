@@ -15,9 +15,9 @@ set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 
 #FFTW
 set (FFTW3_LIBRARIES fftw3)
-set (FFTW3_LIBRARY_DIRS /fftw/lib)
-set (FFTW3_INCLUDE_DIRS /fftw/include)
-include_directories(include ${FFTW3_INCLUDE_DIRS})
+set (FFTW3_LIBRARY_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/fftw/lib)
+set (FFTW3_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/fftw/include)
+
 # My own header files
 file(GLOB FPSource src/FileParser.cpp)
 set(FileParseName ${CMAKE_PROJECT_NAME}FileParser)

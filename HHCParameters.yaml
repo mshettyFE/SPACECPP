@@ -1,0 +1,61 @@
+---
+nturns: 50000                 #Number of turns around ring
+npop: 20000                   #Number of particles 
+nbunches:1320                       #Number of bunches
+E0: 3d9                              #Reference particle energy (eV)
+vrf: 3.6d6                           #Voltage of main cavity (V)
+nharm: 1320                          #Harmonic number of main cavity
+frf: 504.412d6                       #rf frequency of ring
+Aver_curr: 0.5d0                     #Average current of beam (A)
+igap: 0                              #RF bucket gap
+MyGap: 1320                          #! Not needed!
+sig_d: 7.88d-4                       #Momentum spread of detector (dimensionless)
+alpha_C: 5.951d-5                    #Momentum compaction (dimensionless)
+Uloss: 1.352d6                       #Energy loss per turn (eV)
+rjs: 1.81d0                          #Longitudinal rad partition number
+rm: 3d0                              #order of higher harmonic cavity
+frad: 1d0                            #scales longitudinal radiation damping for first kon turns
+kon: 100                             #the number of turns radiation damping is artificially modified
+factor: 1d0                          #!Doesn't do anything
+fact_M: 1d0                          #Scaling factor of beam-loading in main cavity
+fact_L: 1d0                          #Scaling factor of beam-loading in harmonic cavity
+fact_R: 1d0                          #! Not needed!
+detun_M_fact: 0d0                    #Used to offset detuning frequency of main cavity
+detun_R_fact: 0d0                    #Used to offset detuning frequency of hhc
+det_freq: 49d3                       #Detuning frequenccy of harmonic cavity
+dphysinch: 0.0d0                     #Used to offset synchronous phase
+dvgr: 0d3                            #!Not needed! (Offset generator voltage)
+dps_1: 0.0d0                         #!Not needed! )off set in synchronous phase 
+dps_2: 0.0d0                         #!Not needed! )off set in synchronous phase
+theLdrg_1: 0d0                       #Load angle (difference between RF and generator voltage) in degrees of main cavity 1
+theLdrg_2: 0d0                       #Load angle in degrees of main cavity 2
+nturns_plotres: 30                   #!NOt needed!
+nturnon: 200                         #Turns on beam-loading compensation
+nturnsmooth: 200                     #Turns on beam-loading compensation smoothly?
+nhist: 1                             #How many turns back in history you need to calculate the voltage
+ntayl: 2                             #!Not needed! 
+sig_tau_op: 31d-12                   #Optimal bunch length of HHC
+RS: 7.546d6                          #Shunt Impedence of HHC
+Q: 100000                            #Quality factor HHC
+nrfmain: 1                           #number of main cavities
+nrfharm: 1                           #number of harmonic cavities
+betac: 11236.4d0                     #beta coupling of main cavity
+R0: 33375d6                          #Unloaded shunt impedence of main cavity
+Q0: 750d6                            #Unloaded quality factor
+rangetau: 400d-12                    #Longitudinal grid size (in seconds)
+JCZ: 50                              #Number of Fourier coeffs in long. dist.
+seed1: 22133277d0                    #Random number seeds
+seed2: 45954537d0  
+seed3: 22377775d0  
+seed4: 78983324d0  
+ng1: 1319        
+ng2: 2           
+ng1g2: 2000        
+npart: 120000      
+ngridd: 256         
+NJ: 400         
+NG: 128         
+NTY: 10          
+nup: 19          
+nup1: 19          
+nharmh: 1320        

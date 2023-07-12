@@ -11,6 +11,8 @@
 #include "FileParser.h"
 #include "Constants.h"
 
+//#include "yaml-cpp/yaml.h"
+
 // Comment out below to disable unit tests
 #define DOCTEST_CONFIG_DISABLE
 
@@ -26,6 +28,10 @@ int main(int argc, char** argv){
   else{  
     fname = argv[1];
   }
+    fftw_complex *in, *out;
+//    YAML::Node config = YAML::LoadFile(fname);
+//    std::cout << config["nturns"] << std::endl;
+    return 0;
 // Don't perform unit testing if directive flag is off    
 #ifndef DOCTEST_CONFIG_DISABLE
   doctest::Context ctx;
@@ -58,7 +64,7 @@ int main(int argc, char** argv){
 // 
   double eta = ParameterMap["alpha_C"]-1.0/(gamma_naught*gamma_naught);
 // double relative loss per turn
-  double relative_loss = ParameterMap["Uloss"]/[ParameterMap["vrf"];
+  double relative_loss = ParameterMap["Uloss"]/ParameterMap["vrf"];
 // Synchronous particle phase
   double PhiSynchronousNaught = pi-asin(relative_loss);  
   double SinPhiSyncNaught = sin(PhiSynchronousNaught);
@@ -69,9 +75,10 @@ int main(int argc, char** argv){
 // omega_naught is the small oscillation frequency for the quadratic potential
   double omega_naught = sqrt(eta*c*ParameterMap["vrf"]*Omega_rf*CosPhiSyncNaught/Circumference/ParameterMap["E0"]);
   // bunch length in quadratic potential in seconds
-  double sig_quadratic = eta/omes*ParameterMap["sig_d"];
+  double sig_quadratic = eta/omega_naught*ParameterMap["sig_d"];
   // Delta ranges from 0 to MaxDelta. 30 seems pretty arbitrary
   double RangeDelta = 30.0*ParameterMap["sig_d"];
+  // 
 //  MPI_Init(&argc, &argv);
 //  MPI_Finalize();
     return 0;

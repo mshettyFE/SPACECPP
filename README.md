@@ -1,5 +1,5 @@
 # SPACECPP
-Utilizes doctest and MPI
+Utilizes doctest, yaml_cpp,fftw, MPI
 # Compiling
 Need to specify location of mpiicxx compiler. For NSLS-II, this is located at
 `
@@ -9,4 +9,7 @@ Need to specify location of mpiicxx compiler. For NSLS-II, this is located at
 Can find your specific version via `which mpicxx`
 
 To set up, just run 
-`source setup.sh`
+```
+chmod +x setup.sh
+./setup.sh
+```
