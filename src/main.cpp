@@ -26,7 +26,6 @@ int main(int argc, char** argv){
   else{  
     fname = argv[1];
   }
-    fftw_complex *in, *out;
 // Don't perform unit testing if directive flag is off    
 #ifndef DOCTEST_CONFIG_DISABLE
   doctest::Context ctx;
@@ -35,7 +34,25 @@ int main(int argc, char** argv){
   int res = ctx.run(); 
   return 0;
 #endif
-    
+// MPI test
+  MPI_Init(NULL, NULL);
+    // Get the number of processes
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    // Get the rank of the process
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    // Get the name of the processor
+    char processor_name[MPI_MAX_PROCESSOR_NAME];
+    int name_len;
+    MPI_Get_processor_name(processor_name, &name_len);
+    // Finalize the MPI environment.
+        printf("Hello world from processor %s, rank %d"
+           " out of %d processors\n",
+           processor_name, world_rank, world_size);
+    MPI_Finalize();
+
+// Reading Configuration files and opening output files
   std::unordered_map<std::string,std::shared_ptr<std::ofstream>> FileMapping;
   bool OpenFileSucess = OpenOutputFiles(OutputFileNames,FileMapping);    
   std::unordered_map<std::string,double> ParameterMap;
@@ -73,8 +90,5 @@ int main(int argc, char** argv){
   double sig_quadratic = eta/omega_naught*ParameterMap["sig_d"];
   // Delta ranges from 0 to MaxDelta. 30 seems pretty arbitrary
   double RangeDelta = 30.0*ParameterMap["sig_d"];
-  // 
-//  MPI_Init(&argc, &argv);
-//  MPI_Finalize();
     return 0;
 }
