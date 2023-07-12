@@ -8,6 +8,7 @@
 #include<unordered_map>
 
 #include "doctest.h"
+#include "yaml-cpp/yaml.h"
 
 bool StrToDouble(std::string parameter_value_str,double &out_value){
     // Convert Fortran double to C++ double
@@ -121,41 +122,27 @@ TEST_CASE("Testing StrToDouble...") {
 bool ReadContents(std::string fname,std::unordered_map<std::string,double>& ParameterMapping){
 // Read in contents of .in file. Converts all values to doubles. Fails if you can't do this
 // Create buffer
-  std::string line;
-  std::ifstream file (fname.c_str());
-  if (file.is_open()){
-    while( getline(file,line)){
-    // Extract line and push to stringstream for processing
-      std::stringstream s(line);
-    // Extract first and second words in line
-      std::string parameter_value_str, parameter_name;
-      double parameter_value;
-      s>>parameter_value_str;
-    // If we read in a blank line, skip the line
-      if(parameter_value_str.empty()){
-        continue;
-      }
-      s>>parameter_name;
-    // If no parameter name is given for a value, return false
-      if(parameter_name.empty()){
-        std::cout << "No name given to parameter " << parameter_value_str << std::endl;
-          return false;
-      }
-    // Make sure that the parameter value can be converted to a double
-      if(!StrToDouble(parameter_value_str,parameter_value)){
-        file.close();
-        std::cout << "Couldn't parse value of parameter " << parameter_name << std::endl;
+/*
+  return 0;
+*/
+  YAML::Node config;
+  try{
+    config = YAML::LoadFile(fname);
+  }
+  catch(...){
+    std::cerr << "Couldn't parse config file: " << fname <<  std::endl;
+    return 0;
+  }
+  for (YAML::const_iterator it=config.begin();it!=config.end();++it) {
+    std::string key = it->first.as<std::string>();
+    std::string str_val = it->second.as<std::string>();
+    double value;
+    if(!StrToDouble(str_val,value)){
+        std::cout << "Attempted to convert: " << str_val << " to C++ style double " << std::endl;
         return false;
-      }
-      ParameterMapping.insert({parameter_name,parameter_value});
     }
-    file.close();
+    ParameterMapping.insert({key,value});
   }
-  else{
-    std::cout << "Couldn't open file" << std::endl;
-    return false;
-  }
-  return true;
 }
 
 void PrintMap(const std::unordered_map<std::string,double> Map){

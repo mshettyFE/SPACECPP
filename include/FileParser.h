@@ -12,6 +12,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "yaml-cpp/yaml.h"
+
 bool StrToDouble(std::string parameter_value_str,double& out_value);
 
 // Output File writing and printing

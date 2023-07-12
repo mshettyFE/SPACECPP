@@ -1,6 +1,6 @@
 *.out
 *.dat
 *.f
-fftw3/
+fftw/
 .ipynb_checkpoints/
 build/

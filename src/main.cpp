@@ -11,8 +11,6 @@
 #include "FileParser.h"
 #include "Constants.h"
 
-//#include "yaml-cpp/yaml.h"
-
 // Comment out below to disable unit tests
 #define DOCTEST_CONFIG_DISABLE
 
@@ -29,9 +27,6 @@ int main(int argc, char** argv){
     fname = argv[1];
   }
     fftw_complex *in, *out;
-//    YAML::Node config = YAML::LoadFile(fname);
-//    std::cout << config["nturns"] << std::endl;
-    return 0;
 // Don't perform unit testing if directive flag is off    
 #ifndef DOCTEST_CONFIG_DISABLE
   doctest::Context ctx;

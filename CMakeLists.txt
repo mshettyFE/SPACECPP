@@ -18,11 +18,19 @@ set (FFTW3_LIBRARIES fftw3)
 set (FFTW3_LIBRARY_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/fftw/lib)
 set (FFTW3_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/fftw/include)
 
+#YAML
+add_library(yaml SHARED IMPORTED) # or STATIC instead of SHARED
+set_target_properties(yaml PROPERTIES
+  IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/yaml-cpp/lib/libyaml-cpp.so"
+  INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/yaml-cpp/include"
+)
+
 # My own header files
 file(GLOB FPSource src/FileParser.cpp)
 set(FileParseName ${CMAKE_PROJECT_NAME}FileParser)
 add_library(${FileParseName} SHARED ${FPSource})
 target_include_directories (${CMAKE_PROJECT_NAME}FileParser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(${CMAKE_PROJECT_NAME}FileParser yaml)
 add_executable(SPACE src/main.cpp)
 target_link_libraries(SPACE ${FileParseName})
 target_link_libraries(SPACE ${FFTW3_LIBRARIES})
