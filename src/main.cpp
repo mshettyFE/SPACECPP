@@ -18,13 +18,15 @@
 #include "doctest.h"
 
 int main(int argc, char** argv){
-  std::string fname;
-  if(argc < 3){
-    std::cout << argv[0] << '\t' << "Input File Name Verbose(0 or 1)" << std::endl;
+  std::string ParameterName;
+  std::string CavityParameterName;
+  if(argc < 4){
+    std::cout << argv[0] << '\t' << "Input_parameter_yaml Cavity_parameter_yaml Verbose(0 or 1)" << std::endl;
     return -1;
   }
   else{  
-    fname = argv[1];
+    ParameterName = argv[1];
+    CavityParameterName = argv[2];
   }
 // Don't perform unit testing if directive flag is off    
 #ifndef DOCTEST_CONFIG_DISABLE
@@ -35,6 +37,7 @@ int main(int argc, char** argv){
   return 0;
 #endif
 // MPI test
+/*
   MPI_Init(NULL, NULL);
     // Get the number of processes
     int world_size;
@@ -51,15 +54,17 @@ int main(int argc, char** argv){
            " out of %d processors\n",
            processor_name, world_rank, world_size);
     MPI_Finalize();
-
-// Reading Configuration files and opening output files
+*/
+// Opening output files
   std::unordered_map<std::string,std::shared_ptr<std::ofstream>> FileMapping;
-  bool OpenFileSucess = OpenOutputFiles(OutputFileNames,FileMapping);    
+  bool OpenFileSucess = OpenOutputFiles(OutputFileNames,FileMapping);
+// Read input parameters
   std::unordered_map<std::string,double> ParameterMap;
-  bool ReadParameterSucess = ReadContents(fname,ParameterMap);
+  bool ReadParameterSucess = ReadContents(ParameterName,ParameterMap);
   if(ReadParameterSucess){
       PrintMap(ParameterMap);
   }
+/*
 // Defining useful combinations of input parameters
 // Angular frequency around the ring
   double Omega_rf = 2*pi*ParameterMap["frf"];
@@ -90,5 +95,6 @@ int main(int argc, char** argv){
   double sig_quadratic = eta/omega_naught*ParameterMap["sig_d"];
   // Delta ranges from 0 to MaxDelta. 30 seems pretty arbitrary
   double RangeDelta = 30.0*ParameterMap["sig_d"];
-    return 0;
+*/
+  return 0;
 }
