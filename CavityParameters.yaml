@@ -1,10 +1,5 @@
 ---
-# We define Vrf, the revolution frequency of synchrotron, and the harmonic number at the top of the configuration file since these values are shared by every cavity
-Vrf: 1.7d6 #in units of V
-f0: 3.785d5     # in units of Hz (This is not angular frequency)
-harmonic: 1320 # unitless
 # we make a list of cavities with various properties
-cavities:
 # To define a new cavity, we go the the next line , indent 2 spaces, adding a - , and then type the name of the cavity
 # On the immediate next line, indenting by 2 spaces and specifying it's type
 # The possible types are
@@ -24,20 +19,21 @@ cavities:
 #  - Phase of voltage
 #  - order of cavity
 # Below is an example defining the main cavity. This is an active cavity of order 1 with r=1 with sin(Phi) equal to the energy loss per turn
-  - main1:
-      type: "active"
-      r: 1 # relative voltage (1 means same as mains voltage)
-      n: 1
-      Phase: 17 # Modify as needed to match energy loss per turn (U/(V_rf) where U is in units of eV)
-# For a passive cavity, we swap relative voltage for shunt impedance
-  - hhc1:
-      type: "passive"
-      shunt: 9.02d6 # shunt impedence in Mega Ohms
-      n: 3
-      Phase: 80.22 
-# For a passive cavity, we swap relative voltage for shunt impedance
-  - hhc2:
-      type: "active"
-      r: -0.5 # this means that the voltage is half the value of mains and opposite in signage
-      n: 2
-      Phase: 80.22
+cavities:
+  - name:  'main'
+    type: "active"
+    r: 1 # relative voltage (1 means same as mains voltage)
+    order: 1
+    Phase: 17 # Modify as needed to match energy loss per turn (U/(V_rf) where U is in units of eV)
+   # For a passive cavity, we swap relative voltage for shunt impedance
+  - name:  'hhc1'
+    type: "passive"
+    shunt: 9.02d6 # shunt impedence in Mega Ohms
+    order: 3
+    Phase: 80.22 
+  # For a passive cavity, we swap relative voltage for shunt impedance
+  - name:  'hhc2'
+    type: "active"
+    r: -0.5 # this means that the voltage is half the value of mains and opposite in signage
+    order: 2
+    Phase: 80.22

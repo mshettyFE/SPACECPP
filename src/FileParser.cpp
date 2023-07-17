@@ -6,9 +6,14 @@
 #include <memory>
 #include<utility>
 #include<unordered_map>
+#include <cmath>
 
 #include "doctest.h"
 #include "yaml-cpp/yaml.h"
+
+#include "Cavity.h"
+#include "ActiveCavity.h"
+#include "PassiveCavity.h"
 
 bool StrToDouble(std::string parameter_value_str,double &out_value){
     // Convert Fortran double to C++ double
@@ -118,21 +123,185 @@ TEST_CASE("Testing StrToDouble...") {
     CHECK(StrToDouble("-2.4d--9",burner) == false);
 }
 
+bool TestDouble(std::unordered_map<std::string,std::string> map, std::string key){
+  if(map.count(key)==0){
+    std::cerr << "Couldn't find " << key <<  std::endl;
+    return false;
+  }
+  else{
+    try{
+      double temp = std::stod(map.at(key));          
+    }
+    catch(...){
+      std::cout << "Couldn't convert " << map.at(key) << " to a double" << std::endl;
+      return false;
+    }
+  return true;
+  }
+}
 
-bool ReadContents(std::string fname,std::unordered_map<std::string,double>& ParameterMapping){
-// Read in contents of .in file. Converts all values to doubles. Fails if you can't do this
-// Create buffer
-/*
-  return 0;
-*/
+bool AboveMinExclusive(std::unordered_map<std::string,std::string> map, std::string key, double min_val){
+  if(TestDouble(map,key)){
+    double val = std::stod(map.at(key));
+    if(val <= min_val){
+      std::cerr << key << " must be strictly greater than " << min_val << std::endl;
+      return false;
+    }
+  }
+  else{
+    return false;
+  }
+  return true;
+}
+
+bool AboveMinInclusive(std::unordered_map<std::string,std::string> map, std::string key, double min_val){
+  if(TestDouble(map,key)){
+    double val = std::stod(map.at(key));
+    if(val < min_val){
+      std::cerr << key << " must be greater than or equal to " << min_val << std::endl;
+      return false;
+    }
+  }
+  else{
+    return false;
+  }
+  return true;
+}
+
+bool BelowMaxExclusive(std::unordered_map<std::string,std::string> map, std::string key, double max_val){
+  if(TestDouble(map,key)){
+    double val = std::stod(map.at(key));
+    if(val <= max_val){
+      std::cerr << key << " must be strictly less than " << max_val << std::endl;
+      return false;
+    }
+  }
+  else{
+    return false;
+  }
+  return true;
+}
+
+bool BelowMaxInclusive(std::unordered_map<std::string,std::string> map, std::string key, double max_val){
+  if(TestDouble(map,key)){
+    double val = std::stod(map.at(key));
+    if(val < max_val){
+      std::cerr << key << " must be less than or equal to " << max_val << std::endl;
+      return false;
+    }
+  }
+  else{
+    return false;
+  }
+  return true;
+}
+
+bool SandwichedBetweenInclusive(std::unordered_map<std::string,std::string> map, std::string key, double min_val,double max_val){
+  if(max_val < min_val){
+    std::cerr << "max_val must be strictly larger than min_val" << std::endl;
+    return false;
+  }
+  if(TestDouble(map,key)){
+    double val = std::stod(map.at(key));
+    if((val < min_val) || (val > max_val)){
+      std::cerr << key << " must be greater than or equal to " << min_val << " and less than or equal to " << max_val << std::endl;
+      return false;
+    }
+  }
+  else{
+    return false;
+  }
+  return true;
+}
+
+bool SandwichedBetweenExclusive(std::unordered_map<std::string,std::string> map, std::string key, double min_val,double max_val){
+  if(max_val <= min_val){
+    std::cerr << "max_val must be strictly larger than min_val" << std::endl;
+    return false;
+  }
+  if(TestDouble(map,key)){
+    double val = std::stod(map.at(key));
+    if((val <= min_val) || (val >= max_val)){
+      std::cerr << key << " must be strictly greater than " << min_val << " and strictly less than " << max_val << std::endl;
+      return false;
+    }
+  }
+  else{
+    return false;
+  }
+  return true;
+}
+
+bool ValidateInputs(std::unordered_map<std::string,std::string> InputFileMap){
+// Check that nturns exists and is strictly greater than 0
+  std::string var;
+  var = "nturns";
+  if(!AboveMinExclusive(InputFileMap, var, 0)){
+    std::cerr << "Couldn't read " << var <<  std::endl;
+    return false;
+  }
+// Check that npop exists and is strictly greater than 1
+  var = "npop";
+  if(!AboveMinExclusive(InputFileMap, var, 1)){
+    std::cerr << "Couldn't read " << var <<  std::endl;
+    return false;
+  }
+// Check that nbunches exists and is strictly greater than 1
+  var = "nbunches";
+  if(!AboveMinExclusive(InputFileMap, var, 1)){
+    std::cerr << "Couldn't read " << var <<  std::endl;
+    return false;
+  }
+// Checks that Vrf exists and is strictly greater than 0
+  var = "Vrf";
+  if(!AboveMinExclusive(InputFileMap, var, 0)){
+    std::cerr << "Couldn't read " << var <<  std::endl;
+    return false;
+  }
+// check that nharm is strictly greater than 1
+  var = "nharm";
+  if(!AboveMinExclusive(InputFileMap,var,1)){
+    std::cerr << "Couldn't read " << var <<  std::endl;
+    return false;
+  }
+
+// check that frf is strictly greater than 0
+  var = "frf";
+  if(!AboveMinExclusive(InputFileMap,var,0)){
+    std::cerr << "Couldn't read " << var <<  std::endl;
+    return false;
+  }
+
+// Check that E0 exists and is strictly positive
+  var = "E0";
+  if(!AboveMinExclusive(InputFileMap, var, 0)){
+    std::cerr << "Couldn't read " << var <<  std::endl;
+    return false;
+  }
+    
+// Check that sig_d is strictly positive
+  var = "sig_d";
+  if(!AboveMinExclusive(InputFileMap, var, 0)){
+    std::cerr << "Couldn't read " << var <<  std::endl;
+    return false;
+  }
+  return true;
+
+}
+
+bool ReadInputParameters(std::string fname, std::unordered_map<std::string,std::string>& InputFileMap){
+// Read .yaml file for input parameters. Converts all values to doubles. 
+// Validates that parameters behave as expected. R
+// Returns false if you can't convert everything to doubles
   YAML::Node config;
   try{
     config = YAML::LoadFile(fname);
   }
   catch(...){
     std::cerr << "Couldn't parse config file: " << fname <<  std::endl;
-    return 0;
+    return false;
   }
+// Convert YAML node structure to unordered map of string to doubles
   for (YAML::const_iterator it=config.begin();it!=config.end();++it) {
     std::string key = it->first.as<std::string>();
     std::string str_val = it->second.as<std::string>();
@@ -141,11 +310,103 @@ bool ReadContents(std::string fname,std::unordered_map<std::string,double>& Para
         std::cout << "Attempted to convert: " << str_val << " to C++ style double " << std::endl;
         return false;
     }
-    ParameterMapping.insert({key,value});
+    InputFileMap.insert({key,str_val});
   }
+  return ValidateInputs(InputFileMap);
 }
 
-void PrintMap(const std::unordered_map<std::string,double> Map){
+bool ReadCavityParameters(std::string fname,const std::unordered_map<std::string,std::string> InputParameterMap,std::vector<std::unique_ptr<Cavity>>& cavities){
+// Read in contents of .yaml file containing cavity data
+  YAML::Node config;
+  try{
+    config = YAML::LoadFile(fname);
+  }
+  catch(...){
+    std::cerr << "Couldn't parse config file: " << fname <<  std::endl;
+    return false;
+  }
+    
+  YAML::Node cavData;
+  try{
+    cavData= config["cavities"];
+  }
+  catch(...){
+    std::cerr << "Couldn't parse config file: " << fname <<  std::endl;
+    return false;  
+  }
+
+// Interate through each cavity
+  int count = 0;
+  for ( YAML::const_iterator it = cavData.begin(); it != cavData.end(); ++it) {
+    count++;
+//    YAML::Emitter emitter;
+//    emitter << config;
+//    std::cout<<emitter.c_str()<<std::endl;
+// Read in attributes of a particular cavity
+    const YAML::Node& cav = *it;
+    std::unordered_map<std::string,std::string> AttrMap;
+    for(YAML::const_iterator attr = cav.begin(); attr != cav.end(); ++attr) {
+      std::string key = attr->first.as<std::string>();
+      std::string str_val = attr->second.as<std::string>();
+      AttrMap.insert({key,str_val});
+    }
+
+// Check that type, order, phase and either r or shunt exist
+// Also checks if they are valid parameters
+  std::string cname;
+  std::string type;    
+// determining name of cavity
+    try{
+      cname = AttrMap.at("name");
+    }
+    catch(...){
+      std::cerr << "Couldn't find name of cavity number " << count << std::endl;
+        return false;
+    }
+// determine active passive state of cavity
+    try{
+        type = AttrMap.at("type");
+    }
+    catch(...){
+      std::cerr << "Couldn't find type of " << cname << std::endl;
+        return false;    
+    }
+    if(AttrMap.at("type")=="active"){
+// We check that r is a valid double, order is at least 1, and phase is between -180 and 180
+        if(TestDouble(AttrMap,"r") && AboveMinInclusive(AttrMap,"order",1) && SandwichedBetweenInclusive(AttrMap,"Phase",-180,180)){
+          std::string cname = AttrMap.at("name");
+          double r = std::stod(AttrMap.at("r"));
+          double Phase = std::stod(AttrMap.at("Phase"));
+          double Order = std::stod(AttrMap.at("order"));
+          cavities.push_back(std::make_unique<ActiveCavity>(cname,r, Phase,Order));
+        }
+        else{
+          return false;
+        }
+      }
+      else if(AttrMap.at("type")=="passive"){
+// We check that shunt is a valid double, order is at least 1, and phase is between -180 and 180
+        if(TestDouble(AttrMap,"shunt") && AboveMinInclusive(AttrMap,"order",1) && SandwichedBetweenInclusive(AttrMap,"Phase",-180,180)){
+          std::string cname = AttrMap.at("name");
+          double shunt = std::stod(AttrMap.at("shunt"));
+          double Phase = std::stod(AttrMap.at("Phase"));
+          double Order = std::stod(AttrMap.at("order"));
+          cavities.push_back(std::make_unique<PassiveCavity>(cname,shunt, Phase, Order));
+        }
+        else{
+          std::cerr << "Invalid cavity type" << std::endl;
+          return false;
+        }      
+      }
+      else{
+        std::cerr << "Invalid type for cavity " << AttrMap.at("name") << std::endl;
+        return false;
+      }
+  } // done iterating through all cavities
+  return true;
+}
+
+void PrintInputMap(const std::unordered_map<std::string,std::string> Map){
     // Loop through all keys in map and print
     int counter = 0;
     for(auto& pair: Map){

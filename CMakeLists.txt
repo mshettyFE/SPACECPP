@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 # Require C++14
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,6 +31,12 @@ set(FileParseName ${CMAKE_PROJECT_NAME}FileParser)
 add_library(${FileParseName} SHARED ${FPSource})
 target_include_directories (${CMAKE_PROJECT_NAME}FileParser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(${CMAKE_PROJECT_NAME}FileParser yaml)
-add_executable(SPACE src/main.cpp)
+FILE(GLOB MyCSources *.c)
+add_executable(SPACE src/main.cpp
+  src/Particle.cpp
+  src/Bunch.cpp
+  src/PassiveCavity.cpp
+  src/ActiveCavity.cpp
+)
 target_link_libraries(SPACE ${FileParseName})
 target_link_libraries(SPACE ${FFTW3_LIBRARIES})

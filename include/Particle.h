@@ -9,7 +9,7 @@ class Particle{
     double x_trans;
     double p_trans;
   public:
-    Particle(double,double,double,double);
+    Particle(double del,double t,double x,double p);
     Particle();
     void update(double,double,double,double);
     double getDelta();

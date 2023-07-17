@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include <mpi.h>
+#include <sstream>
 
 #include <complex.h>
 #include "fftw3.h"
@@ -11,15 +12,17 @@
 #include "FileParser.h"
 #include "Constants.h"
 
-// Comment out below to disable unit tests
-#define DOCTEST_CONFIG_DISABLE
+// Comment out below to enable unit tests
+//#define DOCTEST_CONFIG_DISABLE
 
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest.h"
 
 int main(int argc, char** argv){
   std::string ParameterName;
+  std::string verbose_str;
   std::string CavityParameterName;
+  bool verbose;
   if(argc < 4){
     std::cout << argv[0] << '\t' << "Input_parameter_yaml Cavity_parameter_yaml Verbose(0 or 1)" << std::endl;
     return -1;
@@ -27,6 +30,10 @@ int main(int argc, char** argv){
   else{  
     ParameterName = argv[1];
     CavityParameterName = argv[2];
+    std::stringstream stream;
+    verbose_str = argv[3];
+    stream << verbose_str;
+    stream >> verbose;
   }
 // Don't perform unit testing if directive flag is off    
 #ifndef DOCTEST_CONFIG_DISABLE
@@ -34,7 +41,6 @@ int main(int argc, char** argv){
   ctx.applyCommandLine(argc, argv);
   ctx.setOption("no-breaks", true); 
   int res = ctx.run(); 
-  return 0;
 #endif
 // MPI test
 /*
@@ -59,11 +65,26 @@ int main(int argc, char** argv){
   std::unordered_map<std::string,std::shared_ptr<std::ofstream>> FileMapping;
   bool OpenFileSucess = OpenOutputFiles(OutputFileNames,FileMapping);
 // Read input parameters
-  std::unordered_map<std::string,double> ParameterMap;
-  bool ReadParameterSucess = ReadContents(ParameterName,ParameterMap);
-  if(ReadParameterSucess){
-      PrintMap(ParameterMap);
+  std::unordered_map<std::string,std::string> ParameterMap;
+  bool f =ReadInputParameters(ParameterName, ParameterMap);
+  if(f && verbose){
+      PrintInputMap(ParameterMap);
   }
+  else{
+    return -1;
+  }
+// Read in cavity configuration
+    std::vector<std::unique_ptr<Cavity>> cavities;
+    bool cavityRead = ReadCavityParameters(CavityParameterName,ParameterMap, cavities);
+    if(cavityRead && verbose){
+      for(const auto& cav : cavities){
+        cav->print();
+      }
+    }
+    else{
+      return -1;
+    }
+
 /*
 // Defining useful combinations of input parameters
 // Angular frequency around the ring

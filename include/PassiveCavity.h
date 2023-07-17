@@ -8,7 +8,10 @@ class PassiveCavity: public Cavity{
   private:
     double shunt_impedance; // shunt_impedance of cavity
   public:
-    PassiveCavity(double shunt_impedance, double Phase, double order, std::unordered_map<std::string,double>);
-    double Voltage(double tau, Bunch bunch);
+    PassiveCavity(std::string cav_name, double shunt_impedance, double Phase, double order);
+    double Voltage(double tau, const Bunch bunch, const std::unordered_map<std::string,std::string> ParameterMap) override;
+
+    void print() override;
+
 };
 #endif
