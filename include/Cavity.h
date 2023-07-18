@@ -14,7 +14,10 @@ class Cavity{
     double Phase; // phase of cavity
     double order; // order of cavity (1 for main, greater than 1 for hhcs)
   public:
+    // Need to verify ParameterMap when you load it from file (see FileParser.h)
+    // Need to override voltage and print with another class (probably need to do this when doing beam-loading compensation (ie. active-passive cavity)?)
     virtual double Voltage(double tau,const Bunch bunch, const std::unordered_map<std::string,std::string> ParameterMap) = 0;
+    // print out parameters of the cavity
     virtual void print() = 0;
 };
 #endif

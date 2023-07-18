@@ -14,6 +14,7 @@
 #include "Cavity.h"
 #include "ActiveCavity.h"
 #include "PassiveCavity.h"
+#include "FileParser.h"
 
 bool StrToDouble(std::string parameter_value_str,double &out_value){
     // Convert Fortran double to C++ double
@@ -140,153 +141,105 @@ bool TestDouble(std::unordered_map<std::string,std::string> map, std::string key
   }
 }
 
-bool AboveMinExclusive(std::unordered_map<std::string,std::string> map, std::string key, double min_val){
-  if(TestDouble(map,key)){
-    double val = std::stod(map.at(key));
-    if(val <= min_val){
-      std::cerr << key << " must be strictly greater than " << min_val << std::endl;
-      return false;
-    }
-  }
-  else{
-    return false;
-  }
-  return true;
+TEST_CASE("Testing TestDouble...") {
+    double burner;
+    std::unordered_map<std::string,std::string> test_map;
+    // Key that can be converted
+    test_map["one"] = "112.234";
+    // Key that can't be converted
+    test_map["three"] = "doesn't_work"; 
+    // test_map["two"] doesn't exist
+    CHECK(TestDouble(test_map,"one" ) == true);
+    CHECK(TestDouble(test_map,"two" ) == false);
+    CHECK(TestDouble(test_map,"three" ) == false);
 }
 
-bool AboveMinInclusive(std::unordered_map<std::string,std::string> map, std::string key, double min_val){
+bool ValidityChecking(std::unordered_map<std::string,std::string> map, std::string key, ValidityCheckingFlags flag, double boundary1, double boundary2){
+  bool output = true;
   if(TestDouble(map,key)){
     double val = std::stod(map.at(key));
-    if(val < min_val){
-      std::cerr << key << " must be greater than or equal to " << min_val << std::endl;
-      return false;
+    switch (flag){
+        case IS_VALID:
+            break;
+        case MIN_EXCLUSIVE:
+            if(val <= boundary1){
+              std::cerr << key << " must be strictly greater than " << boundary1 << std::endl;
+              output= false;
+            }
+            break;
+        case MIN_INCLUSIVE:
+            if(val < boundary1){
+              std::cerr << key << " must be greater than or equal to " << boundary1 << std::endl;
+              output= false;
+            }
+            break;
+        case MAX_EXCLUSIVE:
+            if(val >= boundary1){
+              std::cerr << key << " must be strictly less than " << boundary1 << std::endl;
+              output = false;
+            }
+            break;
+        case MAX_INCLUSIVE:
+            if(val > boundary1){
+              std::cerr << key << " must be less than or equal to " << boundary1 << std::endl;
+              output = false;
+            }
+            break;
+        case MIN_EXCLUSIVE_MAX_EXCLUSIVE:
+            if((val <= boundary1) || (val >= boundary2) ){
+              std::cerr << key << " must be strictly greater than " << boundary1 << " and strictly less than " << boundary2 <<  std::endl;
+              output = false;
+            }
+            break;
+        case MIN_INCLUSIVE_MAX_INCLUSIVE:
+            if((val < boundary1) || (val > boundary2) ){
+              std::cerr << key << " must be greater than or equal to" << boundary1 << " and less than or equal to " << boundary2 <<  std::endl;
+              output =  false;
+            }
+            break;
+        case MIN_EXCLUSIVE_MAX_INCLUSIVE:
+            if((val <= boundary1) || (val > boundary2) ){
+              std::cerr << key << " must be strictly greater than " << boundary1 << " and less than or equal to " << boundary2 <<  std::endl;
+              output = false;
+            }
+            break;
+        case MIN_INCLUSIVE_MAX_EXCLUSIVE:
+            if((val < boundary1) || (val >= boundary2) ){
+              std::cerr << key << " must be greater than or equal to" << boundary1 << " and strictly less than " << boundary2 <<  std::endl;
+              output = false;
+            }
+            break;
+        default:
+// we got an invalid flag. we return false
+            output = false;
     }
   }
-  else{
-    return false;
+  if(!output){
+    std::cerr << "Couldn't read " << key <<  std::endl;
   }
-  return true;
-}
-
-bool BelowMaxExclusive(std::unordered_map<std::string,std::string> map, std::string key, double max_val){
-  if(TestDouble(map,key)){
-    double val = std::stod(map.at(key));
-    if(val <= max_val){
-      std::cerr << key << " must be strictly less than " << max_val << std::endl;
-      return false;
-    }
-  }
-  else{
-    return false;
-  }
-  return true;
-}
-
-bool BelowMaxInclusive(std::unordered_map<std::string,std::string> map, std::string key, double max_val){
-  if(TestDouble(map,key)){
-    double val = std::stod(map.at(key));
-    if(val < max_val){
-      std::cerr << key << " must be less than or equal to " << max_val << std::endl;
-      return false;
-    }
-  }
-  else{
-    return false;
-  }
-  return true;
-}
-
-bool SandwichedBetweenInclusive(std::unordered_map<std::string,std::string> map, std::string key, double min_val,double max_val){
-  if(max_val < min_val){
-    std::cerr << "max_val must be strictly larger than min_val" << std::endl;
-    return false;
-  }
-  if(TestDouble(map,key)){
-    double val = std::stod(map.at(key));
-    if((val < min_val) || (val > max_val)){
-      std::cerr << key << " must be greater than or equal to " << min_val << " and less than or equal to " << max_val << std::endl;
-      return false;
-    }
-  }
-  else{
-    return false;
-  }
-  return true;
-}
-
-bool SandwichedBetweenExclusive(std::unordered_map<std::string,std::string> map, std::string key, double min_val,double max_val){
-  if(max_val <= min_val){
-    std::cerr << "max_val must be strictly larger than min_val" << std::endl;
-    return false;
-  }
-  if(TestDouble(map,key)){
-    double val = std::stod(map.at(key));
-    if((val <= min_val) || (val >= max_val)){
-      std::cerr << key << " must be strictly greater than " << min_val << " and strictly less than " << max_val << std::endl;
-      return false;
-    }
-  }
-  else{
-    return false;
-  }
-  return true;
+  return output;
 }
 
 bool ValidateInputs(std::unordered_map<std::string,std::string> InputFileMap){
-// Check that nturns exists and is strictly greater than 0
-  std::string var;
-  var = "nturns";
-  if(!AboveMinExclusive(InputFileMap, var, 0)){
-    std::cerr << "Couldn't read " << var <<  std::endl;
-    return false;
-  }
-// Check that npop exists and is strictly greater than 1
-  var = "npop";
-  if(!AboveMinExclusive(InputFileMap, var, 1)){
-    std::cerr << "Couldn't read " << var <<  std::endl;
-    return false;
-  }
-// Check that nbunches exists and is strictly greater than 1
-  var = "nbunches";
-  if(!AboveMinExclusive(InputFileMap, var, 1)){
-    std::cerr << "Couldn't read " << var <<  std::endl;
-    return false;
-  }
-// Checks that Vrf exists and is strictly greater than 0
-  var = "Vrf";
-  if(!AboveMinExclusive(InputFileMap, var, 0)){
-    std::cerr << "Couldn't read " << var <<  std::endl;
-    return false;
-  }
-// check that nharm is strictly greater than 1
-  var = "nharm";
-  if(!AboveMinExclusive(InputFileMap,var,1)){
-    std::cerr << "Couldn't read " << var <<  std::endl;
-    return false;
-  }
+// Check that nturns exists and is greater than or equal to 1
+   bool output =  !(ValidityChecking(InputFileMap, "nturns", MIN_INCLUSIVE, 1) &&
+// Check that npop exists and is strictly greater than or equal to 1
+                    ValidityChecking(InputFileMap, "npop", MIN_INCLUSIVE, 1) &&
+// Check that nbunches exists and is strictly greater than or equal to 1
+                    ValidityChecking(InputFileMap, "nbunches", MIN_INCLUSIVE, 1) &&
+// Check that Vrf exists and is greater than or equal to 0
+                    ValidityChecking(InputFileMap, "Vrf", MIN_INCLUSIVE, 0) &&
+// Check that nharm exists and is greater or equal to 1
+                    ValidityChecking(InputFileMap, "nharm", MIN_INCLUSIVE, 1) &&
+// Check that frf exists and is greater or or equal to 0
+                    ValidityChecking(InputFileMap, "frf", MIN_INCLUSIVE, 0) &&
+// Check that E0 exists and is strictly greater than 0
+                    ValidityChecking(InputFileMap, "E0", MIN_EXCLUSIVE, 0) &&
+// Check that sig_d exists and is strictly greater than 0
+                    ValidityChecking(InputFileMap, "sig_d", MIN_EXCLUSIVE, 0)
 
-// check that frf is strictly greater than 0
-  var = "frf";
-  if(!AboveMinExclusive(InputFileMap,var,0)){
-    std::cerr << "Couldn't read " << var <<  std::endl;
-    return false;
-  }
-
-// Check that E0 exists and is strictly positive
-  var = "E0";
-  if(!AboveMinExclusive(InputFileMap, var, 0)){
-    std::cerr << "Couldn't read " << var <<  std::endl;
-    return false;
-  }
-    
-// Check that sig_d is strictly positive
-  var = "sig_d";
-  if(!AboveMinExclusive(InputFileMap, var, 0)){
-    std::cerr << "Couldn't read " << var <<  std::endl;
-    return false;
-  }
-  return true;
-
+                   );
+    return output;
 }
 
 bool ReadInputParameters(std::string fname, std::unordered_map<std::string,std::string>& InputFileMap){
@@ -339,18 +292,19 @@ bool ReadCavityParameters(std::string fname,const std::unordered_map<std::string
   int count = 0;
   for ( YAML::const_iterator it = cavData.begin(); it != cavData.end(); ++it) {
     count++;
-//    YAML::Emitter emitter;
-//    emitter << config;
-//    std::cout<<emitter.c_str()<<std::endl;
 // Read in attributes of a particular cavity
     const YAML::Node& cav = *it;
     std::unordered_map<std::string,std::string> AttrMap;
-    for(YAML::const_iterator attr = cav.begin(); attr != cav.end(); ++attr) {
+    for(YAML::const_iterator attr = cav.begin(); attr != cav.end(); ++attr){
+// Read in attributes of a cavity as string
       std::string key = attr->first.as<std::string>();
       std::string str_val = attr->second.as<std::string>();
       AttrMap.insert({key,str_val});
     }
-
+// Make sure that a cavity actually has attributes
+    if(AttrMap.empty()){
+      return false;
+    }
 // Check that type, order, phase and either r or shunt exist
 // Also checks if they are valid parameters
   std::string cname;
@@ -373,12 +327,14 @@ bool ReadCavityParameters(std::string fname,const std::unordered_map<std::string
     }
     if(AttrMap.at("type")=="active"){
 // We check that r is a valid double, order is at least 1, and phase is between -180 and 180
-        if(TestDouble(AttrMap,"r") && AboveMinInclusive(AttrMap,"order",1) && SandwichedBetweenInclusive(AttrMap,"Phase",-180,180)){
-          std::string cname = AttrMap.at("name");
-          double r = std::stod(AttrMap.at("r"));
-          double Phase = std::stod(AttrMap.at("Phase"));
-          double Order = std::stod(AttrMap.at("order"));
-          cavities.push_back(std::make_unique<ActiveCavity>(cname,r, Phase,Order));
+        if(ValidityChecking(AttrMap, "r", IS_VALID) &&
+          ValidityChecking(AttrMap, "order", MIN_INCLUSIVE, 1) &&
+          ValidityChecking(AttrMap, "Phase", MIN_INCLUSIVE_MAX_INCLUSIVE, -180,180)){
+            std::string cname = AttrMap.at("name");
+            double r = std::stod(AttrMap.at("r"));
+            double Phase = std::stod(AttrMap.at("Phase"));
+            double Order = std::stod(AttrMap.at("order"));
+            cavities.push_back(std::make_unique<ActiveCavity>(cname,r, Phase,Order));
         }
         else{
           return false;
@@ -386,12 +342,14 @@ bool ReadCavityParameters(std::string fname,const std::unordered_map<std::string
       }
       else if(AttrMap.at("type")=="passive"){
 // We check that shunt is a valid double, order is at least 1, and phase is between -180 and 180
-        if(TestDouble(AttrMap,"shunt") && AboveMinInclusive(AttrMap,"order",1) && SandwichedBetweenInclusive(AttrMap,"Phase",-180,180)){
-          std::string cname = AttrMap.at("name");
-          double shunt = std::stod(AttrMap.at("shunt"));
-          double Phase = std::stod(AttrMap.at("Phase"));
-          double Order = std::stod(AttrMap.at("order"));
-          cavities.push_back(std::make_unique<PassiveCavity>(cname,shunt, Phase, Order));
+        if(ValidityChecking(AttrMap, "shunt", IS_VALID) &&
+          ValidityChecking(AttrMap, "order", MIN_INCLUSIVE, 1) &&
+          ValidityChecking(AttrMap, "Phase", MIN_INCLUSIVE_MAX_INCLUSIVE, -180,180)){
+            std::string cname = AttrMap.at("name");
+            double shunt = std::stod(AttrMap.at("shunt"));
+            double Phase = std::stod(AttrMap.at("Phase"));
+            double Order = std::stod(AttrMap.at("order"));
+            cavities.push_back(std::make_unique<PassiveCavity>(cname,shunt, Phase, Order));
         }
         else{
           std::cerr << "Invalid cavity type" << std::endl;
@@ -402,7 +360,10 @@ bool ReadCavityParameters(std::string fname,const std::unordered_map<std::string
         std::cerr << "Invalid type for cavity " << AttrMap.at("name") << std::endl;
         return false;
       }
-  } // done iterating through all cavities
+  } // done iterating through all cavities. We check if any cavities were present
+  if(cavities.empty()){
+    return false;
+  }
   return true;
 }
 
@@ -416,6 +377,7 @@ void PrintInputMap(const std::unordered_map<std::string,std::string> Map){
 }
 
 bool OpenOutputFiles(std::vector<std::string> FileNames,std::unordered_map<std::string,std::shared_ptr<std::ofstream>>& FileMapping){
+// We open a bunch of filestreams
     for(std::string fname: FileNames){
         std::shared_ptr<std::ofstream> file = std::make_shared<std::ofstream>(fname);
         FileMapping[fname] = file;
@@ -427,6 +389,7 @@ bool OpenOutputFiles(std::vector<std::string> FileNames,std::unordered_map<std::
 }
 
 bool WriteToOutputFile(std::unordered_map<std::string,std::shared_ptr<std::ofstream>>& FileMap, std::string fname, std::string text){
+// Write a string to a particular file
     auto member = FileMap.find(fname);
     if (member != FileMap.end()) {
       auto file_stream = member->second;

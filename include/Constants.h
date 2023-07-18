@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
-    
+
     const double pi = acos(-1);
     // in meters per second
     const double c = 299792458;
