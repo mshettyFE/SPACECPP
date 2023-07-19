@@ -4,13 +4,15 @@
 #include <memory>
 #include <unordered_map>
 #include <mpi.h>
+#include <fstream>
 #include <sstream>
-
 #include <complex.h>
+
 #include "fftw3.h"
 
 #include "FileParser.h"
 #include "Constants.h"
+#include"Bunch.h"
 
 // Comment out below to enable unit tests
 //#define DOCTEST_CONFIG_DISABLE
@@ -22,25 +24,37 @@ int main(int argc, char** argv){
   std::string ParameterName;
   std::string verbose_str;
   std::string CavityParameterName;
+  std::string BunchParameterName;
   bool verbose;
-  if(argc < 4){
-    std::cout << argv[0] << '\t' << "Input_parameter_yaml Cavity_parameter_yaml Verbose(0 or 1)" << std::endl;
+  if(argc < 5){
+    std::cout << argv[0] << '\t' << "Input_parameter_yaml Cavity_parameter_yaml Bunch_parameter_yaml Verbose(0 or 1)" << std::endl;
     return -1;
   }
   else{  
     ParameterName = argv[1];
     CavityParameterName = argv[2];
+    BunchParameterName = argv[3];
     std::stringstream stream;
-    verbose_str = argv[3];
+    verbose_str = argv[4];
+    // convert verbose argument to boolean
     stream << verbose_str;
     stream >> verbose;
   }
 // Don't perform unit testing if directive flag is off    
 #ifndef DOCTEST_CONFIG_DISABLE
+  std::ofstream err_file;
+  std::string err_file_name = "TestingOutput.err";
+  err_file.open(err_file_name);
+  // Redirect cerr to file
+  std::streambuf* stream_buffer_file = err_file.rdbuf();
+  std::cerr.rdbuf(stream_buffer_file);
   doctest::Context ctx;
   ctx.applyCommandLine(argc, argv);
   ctx.setOption("no-breaks", true); 
   int res = ctx.run(); 
+  std::cout << "All output was written to " << err_file_name << std::endl;
+  err_file.close();
+  return 0;
 #endif
 // MPI test
 /*
@@ -76,6 +90,7 @@ int main(int argc, char** argv){
 // Read in cavity configuration
     std::vector<std::unique_ptr<Cavity>> cavities;
     bool cavityRead = ReadCavityParameters(CavityParameterName,ParameterMap, cavities);
+    std::cout << cavityRead << '\t';
     if(cavityRead && verbose){
       for(const auto& cav : cavities){
         cav->print();
@@ -85,6 +100,26 @@ int main(int argc, char** argv){
       return -1;
     }
 
+// Read in cavity configuration
+    std::unordered_map<Coords, std::tuple<double,double>> coord_parameters;
+    bool randomGenRead = ReadBunchParameters(BunchParameterName,coord_parameters );
+    std::cout << randomGenRead << '\t';
+    if(randomGenRead && verbose){
+        PrintRandomGenMap(coord_parameters);
+    }
+    else{
+      return -1;
+    }
+    double v = std::stod(ParameterMap["nbunches"]);
+    int nbunches = static_cast<int>(v);
+    std::vector<Bunch> Bunches;
+    for(int i=0; i<nbunches; ++i){
+      auto b = Bunch(ParameterMap, coord_parameters);
+      Bunches.push_back(b);
+      if(verbose){
+        b.print();
+      }
+    }
 /*
 // Defining useful combinations of input parameters
 // Angular frequency around the ring

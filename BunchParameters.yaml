@@ -1,0 +1,12 @@
+# Arrival time in picoseconds (ps)
+tau_mu: 0
+tau_sigma: 3
+# normalized momentum deviation (unitless)
+delta_mu: 0
+delta_sigma: .1
+# transverse position
+x_trans_mu: 0
+x_trans_sigma: 1
+# transverse momentum
+px_trans_mu: 0
+px_trans_sigma: 1

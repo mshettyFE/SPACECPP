@@ -1,6 +1,6 @@
 nturns: 50000                 #Number of turns around ring
-npop: 20000                   #Number of particles 
-nbunches: 1320                       #Number of bunches
+npop: 200                   #Number of particles 
+nbunches: 100                       #Number of bunches
 E0: 3d9                              #Reference particle energy (eV)
 Vrf: 3.6d6                           #Voltage of main cavity (V)
 nharm: 1320                          #Harmonic number of main cavity

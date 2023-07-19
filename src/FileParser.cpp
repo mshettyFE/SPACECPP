@@ -20,6 +20,7 @@ bool StrToDouble(std::string parameter_value_str,double &out_value){
     // Convert Fortran double to C++ double
     // Empty string check
     if(parameter_value_str.empty()){
+      std::cerr << "No value detected" << std::endl;
       return false;
     }
     // search for 'd' in string
@@ -47,10 +48,12 @@ bool StrToDouble(std::string parameter_value_str,double &out_value){
             }
             // For this case, a negative sign should not appear anywhere else
             else{
+              std::cerr << "Negative sign can only appear at the beginning for numbers not in scientific notation" << std::endl;
               return false;
             }
           }
           else{
+            std::cerr << "Invalid character at location " << location << " in value " << parameter_value_str << std::endl;
             return false;
           }
         }
@@ -59,6 +62,7 @@ bool StrToDouble(std::string parameter_value_str,double &out_value){
           out_value = std::stod(parameter_value_str);
         }
         catch(...){
+            std::cerr << "Couldn't convert value to double" << std::endl;
             return false;
         }
     }
@@ -84,10 +88,12 @@ bool StrToDouble(std::string parameter_value_str,double &out_value){
         }
         else if(character=='-'){
           // If the negative sign appears first, or directly after E, then we good
+          // If E_loc hasn't been set to 1 yet, then E_loc+1=0 or the first character
           if(current_loc==(E_loc+1)){
             continue;
           }
           else{
+            std::cerr << "Negative sign in incorrect place " << std::endl;
             return false;        
           }
         }
@@ -96,6 +102,7 @@ bool StrToDouble(std::string parameter_value_str,double &out_value){
           continue;
         }
         else{
+            std::cerr << "Invalid character at location " << current_loc << " in value " << parameter_value_str << std::endl;
           return false;
         }
       }
@@ -104,6 +111,7 @@ bool StrToDouble(std::string parameter_value_str,double &out_value){
         out_value = std::stod(parameter_value_str);
       }
       catch(...){
+          std::cerr << "Couldn't convert value to double" << std::endl;
           return false;
       }
     }
@@ -130,11 +138,9 @@ bool TestDouble(std::unordered_map<std::string,std::string> map, std::string key
     return false;
   }
   else{
-    try{
-      double temp = std::stod(map.at(key));          
-    }
-    catch(...){
-      std::cout << "Couldn't convert " << map.at(key) << " to a double" << std::endl;
+    double temp;
+    if(!StrToDouble(map[key],temp)){
+      std::cerr << "Couldn't convert " << map.at(key) << " to a double" << std::endl;
       return false;
     }
   return true;
@@ -155,6 +161,19 @@ TEST_CASE("Testing TestDouble...") {
 }
 
 bool ValidityChecking(std::unordered_map<std::string,std::string> map, std::string key, ValidityCheckingFlags flag, double boundary1, double boundary2){
+/*
+  Used to validate that a value conforms to a constraint. Suppose that our number in question is x. We have 9 possible cases:
+      * IS_VALID: Only checks if an value of a key is a valid real number
+      The rest do validity checking in addition to boundary checking
+      * MIN_EXCLUSIVE: checks if value is strictly greater than boundary1
+      * MIN_INCLUSIVE: checks if value is greater than or equal to boundary1
+      * MAX_EXCLUSIVE: checks if value is strictly less than boundary1
+      * MAX_INCLUSIVE: checks if value is less than or equal to boundary1
+      * MIN_EXCLUSIVE_MAX_EXCLUSIVE: checks if value is strictly greater than boundary1 and strictly less than boundary2
+      * MIN_INCLUSIVE_MAX_INCLUSIVE:checks if value is  greater than or equal to boundary1 and less than or equal to boundary2
+      * MIN_EXCLUSIVE_MAX_INCLUSIVE: checks if value is strictly greater than boundary1 and less than or equal to boundary2
+      *MIN_INCLUSIVE_MAX_EXCLUSIVE: checks if value is greater than or equal to boundary1 and strictly less than boundary2
+*/
   bool output = true;
   if(TestDouble(map,key)){
     double val = std::stod(map.at(key));
@@ -220,9 +239,104 @@ bool ValidityChecking(std::unordered_map<std::string,std::string> map, std::stri
   return output;
 }
 
+TEST_CASE("Testing ValidityCheck...") {
+    std::unordered_map<std::string,std::string> test_map;
+    double min_val, max_val;
+    // Is valid check
+    test_map["one"] = "not_valid";
+    CHECK(ValidityChecking(test_map, "one",IS_VALID) == true);
+    test_map["one"] = "1231.23423";
+    CHECK(ValidityChecking(test_map, "one",IS_VALID) == true);
+    // Min exclusive check
+    test_map["two"] = "234.5671";
+    min_val = 100;
+    CHECK(ValidityChecking(test_map, "two", MIN_EXCLUSIVE,min_val) == true);
+    test_map["two"] = "100";
+    CHECK(ValidityChecking(test_map, "two", MIN_EXCLUSIVE,min_val) == false);
+    test_map["two"] = "10.1234";
+    CHECK(ValidityChecking(test_map, "two", MIN_EXCLUSIVE,min_val) == false);
+    // Min inclusive check
+    test_map["three"] = "234.5671";
+    min_val = 100;
+    CHECK(ValidityChecking(test_map, "three", MIN_INCLUSIVE,min_val) == true);
+    test_map["three"] = "100";
+    CHECK(ValidityChecking(test_map, "three", MIN_INCLUSIVE,min_val) == true);
+    test_map["three"] = "10.1234";
+    CHECK(ValidityChecking(test_map, "three", MIN_INCLUSIVE,min_val) == false);
+    // Max exclusive check
+    test_map["four"] = "1234.5671";
+    max_val = 1000;
+    CHECK(ValidityChecking(test_map, "four", MAX_EXCLUSIVE,max_val) == false);
+    test_map["four"] = "100";
+    CHECK(ValidityChecking(test_map, "four", MAX_EXCLUSIVE,max_val) == true);
+    test_map["four"] = "1000";
+    CHECK(ValidityChecking(test_map, "four", MAX_EXCLUSIVE,max_val) == false);
+    // Min inclusive check
+    test_map["five"] = "1234.5671";
+    max_val = 1000;
+    CHECK(ValidityChecking(test_map, "five", MAX_INCLUSIVE,max_val) == false);
+    test_map["five"] = "100";
+    CHECK(ValidityChecking(test_map, "five", MAX_INCLUSIVE,max_val) == true);
+    test_map["three"] = "1000";
+    CHECK(ValidityChecking(test_map, "three", MAX_INCLUSIVE,max_val) == true);
+    // min exclusive max exclusive
+    test_map["six"] = "503.6";
+    min_val = 10;
+    max_val = 1000;
+    CHECK(ValidityChecking(test_map, "six", MIN_EXCLUSIVE_MAX_EXCLUSIVE,min_val, max_val) == true);
+    test_map["six"] = "10";
+    CHECK(ValidityChecking(test_map, "six", MIN_EXCLUSIVE_MAX_EXCLUSIVE,min_val, max_val) == false);
+    test_map["six"] = "9.9";
+    CHECK(ValidityChecking(test_map, "six", MIN_EXCLUSIVE_MAX_EXCLUSIVE,min_val, max_val) == false);
+    test_map["six"] = "1000";
+    CHECK(ValidityChecking(test_map, "six", MIN_EXCLUSIVE_MAX_EXCLUSIVE,min_val, max_val) == false);
+    test_map["six"] = "1000.1";
+    CHECK(ValidityChecking(test_map, "six", MIN_EXCLUSIVE_MAX_EXCLUSIVE,min_val, max_val) == false);
+    // min inclusive max inclusive
+    test_map["seven"] = "503.6";
+    min_val = 10;
+    max_val = 1000;
+    CHECK(ValidityChecking(test_map, "seven", MIN_INCLUSIVE_MAX_INCLUSIVE,min_val, max_val) == true);
+    test_map["seven"] = "10";
+    CHECK(ValidityChecking(test_map, "seven", MIN_INCLUSIVE_MAX_INCLUSIVE,min_val, max_val) == true);
+    test_map["seven"] = "9.9";
+    CHECK(ValidityChecking(test_map, "seven", MIN_INCLUSIVE_MAX_INCLUSIVE,min_val, max_val) == false);
+    test_map["seven"] = "1000";
+    CHECK(ValidityChecking(test_map, "seven", MIN_INCLUSIVE_MAX_INCLUSIVE,min_val, max_val) == true);
+    test_map["seven"] = "1000.1";
+    CHECK(ValidityChecking(test_map, "seven", MIN_INCLUSIVE_MAX_INCLUSIVE,min_val, max_val) == false);
+    // min exclusive max inclusive
+    test_map["eight"] = "503.6";
+    min_val = 10;
+    max_val = 1000;
+    CHECK(ValidityChecking(test_map, "eight", MIN_EXCLUSIVE_MAX_INCLUSIVE,min_val, max_val) == true);
+    test_map["eight"] = "10";
+    CHECK(ValidityChecking(test_map, "eight", MIN_EXCLUSIVE_MAX_INCLUSIVE,min_val, max_val) == false);
+    test_map["eight"] = "9.9";
+    CHECK(ValidityChecking(test_map, "eight", MIN_EXCLUSIVE_MAX_INCLUSIVE,min_val, max_val) == false);
+    test_map["eight"] = "1000";
+    CHECK(ValidityChecking(test_map, "eight", MIN_EXCLUSIVE_MAX_INCLUSIVE,min_val, max_val) == true);
+    test_map["eight"] = "1000.1";
+    CHECK(ValidityChecking(test_map, "eight", MIN_EXCLUSIVE_MAX_INCLUSIVE,min_val, max_val) == false);
+    // min inclusive max exclusive
+    test_map["nine"] = "503.6";
+    min_val = 10;
+    max_val = 1000;
+    CHECK(ValidityChecking(test_map, "nine", MIN_INCLUSIVE_MAX_EXCLUSIVE,min_val, max_val) == true);
+    test_map["nine"] = "10";
+    CHECK(ValidityChecking(test_map, "nine", MIN_INCLUSIVE_MAX_EXCLUSIVE,min_val, max_val) == true);
+    test_map["nine"] = "9.9";
+    CHECK(ValidityChecking(test_map, "nine", MIN_INCLUSIVE_MAX_EXCLUSIVE,min_val, max_val) == false);
+    test_map["nine"] = "1000";
+    CHECK(ValidityChecking(test_map, "nine", MIN_INCLUSIVE_MAX_EXCLUSIVE,min_val, max_val) == false);
+    test_map["nine"] = "1000.1";
+    CHECK(ValidityChecking(test_map, "nine", MIN_INCLUSIVE_MAX_EXCLUSIVE,min_val, max_val) == false);    
+}
+
 bool ValidateInputs(std::unordered_map<std::string,std::string> InputFileMap){
+// function that validates input parameters from .yaml file. Need to edit this function if we add more parameters
 // Check that nturns exists and is greater than or equal to 1
-   bool output =  !(ValidityChecking(InputFileMap, "nturns", MIN_INCLUSIVE, 1) &&
+   bool output =  (ValidityChecking(InputFileMap, "nturns", MIN_INCLUSIVE, 1) &&
 // Check that npop exists and is strictly greater than or equal to 1
                     ValidityChecking(InputFileMap, "npop", MIN_INCLUSIVE, 1) &&
 // Check that nbunches exists and is strictly greater than or equal to 1
@@ -260,7 +374,7 @@ bool ReadInputParameters(std::string fname, std::unordered_map<std::string,std::
     std::string str_val = it->second.as<std::string>();
     double value;
     if(!StrToDouble(str_val,value)){
-        std::cout << "Attempted to convert: " << str_val << " to C++ style double " << std::endl;
+        std::cerr << "Attempted to convert: " << str_val << " to C++ style double " << std::endl;
         return false;
     }
     InputFileMap.insert({key,str_val});
@@ -366,15 +480,77 @@ bool ReadCavityParameters(std::string fname,const std::unordered_map<std::string
   }
   return true;
 }
+bool ReadBunchParameters(std::string fname, std::unordered_map<Coords, std::tuple<double,double>>& coord_parameters ){
+// Read in contents of .yaml file containing cavity data
+  YAML::Node config;
+  try{
+    config = YAML::LoadFile(fname);
+  }
+  catch(...){
+    std::cerr << "Couldn't parse config file: " << fname <<  std::endl;
+    return false;
+  }
+// Test for mu and sigma for all coordinates
+    YAML::Node tau_mu = config["tau_mu"];
+    YAML::Node tau_sigma = config["tau_sigma"];
+    YAML::Node delta_mu = config["delta_mu"];
+    YAML::Node delta_sigma = config["delta_sigma"];
+    YAML::Node x_trans_mu = config["x_trans_mu"];
+    YAML::Node x_trans_sigma = config["x_trans_sigma"];
+    YAML::Node px_trans_mu = config["px_trans_mu"];
+    YAML::Node px_trans_sigma = config["px_trans_sigma"];
+    if(!(tau_mu && tau_sigma && delta_mu && delta_sigma && x_trans_mu && x_trans_sigma && px_trans_sigma && px_trans_sigma)){
+      std::cerr << "Missing parameters to generate random initial particle position" <<  std::endl;
+      return false;
+    }
+
+    std::unordered_map<std::string, std::string> TempMap;
+    TempMap["tau_mu"] = tau_mu.as<std::string>();
+    TempMap["tau_sigma"] = tau_sigma.as<std::string>();
+    TempMap["delta_mu"] = delta_mu.as<std::string>();
+    TempMap["delta_sigma"] = delta_sigma.as<std::string>();
+    TempMap["x_trans_mu"] = x_trans_mu.as<std::string>();
+    TempMap["x_trans_sigma"] = x_trans_sigma.as<std::string>();
+    TempMap["px_trans_mu"] = px_trans_mu.as<std::string>();
+    TempMap["px_trans_sigma"] = px_trans_sigma.as<std::string>();
+    
+    bool valid = 
+        ValidityChecking(TempMap, "tau_mu", IS_VALID) &&
+        ValidityChecking(TempMap, "tau_sigma", MIN_EXCLUSIVE, 0) &&
+        ValidityChecking(TempMap, "delta_mu", IS_VALID) &&
+        ValidityChecking(TempMap, "delta_sigma", MIN_EXCLUSIVE, 0) &&
+        ValidityChecking(TempMap, "x_trans_mu", IS_VALID) &&
+        ValidityChecking(TempMap, "x_trans_sigma", MIN_EXCLUSIVE, 0) &&
+        ValidityChecking(TempMap, "px_trans_mu", IS_VALID) &&
+        ValidityChecking(TempMap, "px_trans_sigma", MIN_EXCLUSIVE, 0);
+  if(! valid){
+    std::cerr << "couldn't parse parameters for random initial particle distribution " << std::endl;
+    return false;
+  }
+  std::tuple<double,double> val = std::make_tuple(std::stod(TempMap["tau_mu"]),std::stod(TempMap["tau_sigma"]));
+  coord_parameters[TAU] = val;
+  val =  std::make_tuple(std::stod(TempMap["delta_mu"]),std::stod(TempMap["delta_sigma"]));
+  coord_parameters[DELTA] = val;
+  val = std::make_tuple(std::stod(TempMap["x_trans_mu"]),std::stod(TempMap["x_trans_sigma"]));
+  coord_parameters[X_TRANS] = val;
+  val = std::make_tuple(std::stod(TempMap["px_trans_mu"]),std::stod(TempMap["px_trans_sigma"]));
+  coord_parameters[PX_TRANS] = val;
+  return true;
+}
 
 void PrintInputMap(const std::unordered_map<std::string,std::string> Map){
     // Loop through all keys in map and print
-    int counter = 0;
     for(auto& pair: Map){
-      counter++;
       std::cout << pair.first << '\t' << pair.second << std::endl;
     }
 }
+
+void PrintRandomGenMap(const std::unordered_map<Coords, std::tuple<double,double>> Map){
+    for(auto& pair: Map){
+      std::cout << pair.first << "\t mu: " << std::get<0>(pair.second) << "\t sigma: "  << std::get<1>(pair.second) <<  std::endl;
+    }
+}
+
 
 bool OpenOutputFiles(std::vector<std::string> FileNames,std::unordered_map<std::string,std::shared_ptr<std::ofstream>>& FileMapping){
 // We open a bunch of filestreams
