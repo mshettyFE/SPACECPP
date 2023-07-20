@@ -11,8 +11,7 @@
 class Cavity{
   protected:
     std::string name; // name of cavity
-    double Phase; // phase of cavity
-    double order; // order of cavity (1 for main, greater than 1 for hhcs)
+    int order; // order of cavity (1 for main, greater than 1 for hhcs)
   public:
     // Need to verify ParameterMap when you load it from file (see FileParser.h)
     // Need to override voltage and print with another class (probably need to do this when doing beam-loading compensation (ie. active-passive cavity)?)

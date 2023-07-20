@@ -455,15 +455,17 @@ bool ReadCavityParameters(std::string fname,const std::unordered_map<std::string
         }
       }
       else if(AttrMap.at("type")=="passive"){
-// We check that shunt is a valid double, order is at least 1, and phase is between -180 and 180
-        if(ValidityChecking(AttrMap, "shunt", IS_VALID) &&
+// We check that shunt is strictly positive, order is at least 1, detuning frequency is a valid double, quality factor is stritly positive
+        if(ValidityChecking(AttrMap, "shunt", MIN_EXCLUSIVE,0) &&
           ValidityChecking(AttrMap, "order", MIN_INCLUSIVE, 1) &&
-          ValidityChecking(AttrMap, "Phase", MIN_INCLUSIVE_MAX_INCLUSIVE, -180,180)){
+           ValidityChecking(AttrMap, "detuning", IS_VALID) &&
+          ValidityChecking(AttrMap, "quality", MIN_EXCLUSIVE, 0)){
             std::string cname = AttrMap.at("name");
             double shunt = std::stod(AttrMap.at("shunt"));
-            double Phase = std::stod(AttrMap.at("Phase"));
-            double Order = std::stod(AttrMap.at("order"));
-            cavities.push_back(std::make_unique<PassiveCavity>(cname,shunt, Phase, Order));
+            double Order = std::stod(AttrMap.at("shunt"));
+            double qual = std::stod(AttrMap.at("quality"));
+            double detune=  std::stod(AttrMap.at("detuning"));
+            cavities.push_back(std::make_unique<PassiveCavity>(cname,shunt, qual, detune, Order));
         }
         else{
           std::cerr << "Invalid cavity type" << std::endl;

@@ -15,7 +15,7 @@
 #include"Bunch.h"
 
 // Comment out below to enable unit tests
-//#define DOCTEST_CONFIG_DISABLE
+#define DOCTEST_CONFIG_DISABLE
 
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest.h"
@@ -90,7 +90,6 @@ int main(int argc, char** argv){
 // Read in cavity configuration
     std::vector<std::unique_ptr<Cavity>> cavities;
     bool cavityRead = ReadCavityParameters(CavityParameterName,ParameterMap, cavities);
-    std::cout << cavityRead << '\t';
     if(cavityRead && verbose){
       for(const auto& cav : cavities){
         cav->print();
@@ -103,11 +102,7 @@ int main(int argc, char** argv){
 // Read in cavity configuration
     std::unordered_map<Coords, std::tuple<double,double>> coord_parameters;
     bool randomGenRead = ReadBunchParameters(BunchParameterName,coord_parameters );
-    std::cout << randomGenRead << '\t';
-    if(randomGenRead && verbose){
-        PrintRandomGenMap(coord_parameters);
-    }
-    else{
+    if(!randomGenRead){
       return -1;
     }
     double v = std::stod(ParameterMap["nbunches"]);
@@ -116,9 +111,6 @@ int main(int argc, char** argv){
     for(int i=0; i<nbunches; ++i){
       auto b = Bunch(ParameterMap, coord_parameters);
       Bunches.push_back(b);
-      if(verbose){
-        b.print();
-      }
     }
 /*
 // Defining useful combinations of input parameters

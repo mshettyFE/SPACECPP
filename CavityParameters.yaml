@@ -6,18 +6,24 @@
 #   - "active"
 #   - "passive"
 
+# active is where you assume that the cavity is beam-loading compensated (ie. phase and amplitude of cavity are not coupled. Generator amplitude and phase are such that you get a constant max voltage and synchronous phase in the cavity)
+
+# passive is when there is no external generator associated with the cavity, only induced voltage from the beam. You can't compensate the beam here
+
 # Afterwards, you need to specify numerical values of the parameters needed to define the voltage of the cavity
 # all parameters need to be indented 2 spaces with respect to the cavity name
 
 # For an active configuration, you need:
 #  - r: relative voltage with respect to V_rf
-#  - Phi: initial phase of voltage (in degrees)
+#  - Phase: initial phase of voltage (in degrees)
 #  - order: the order of the cavity
 
 # For a passive configuration, you need:
 #  - shunt impedance
-#  - Phase of voltage
+#  - Quality Factor
+#  - detuning frequency
 #  - order of cavity
+
 # Below is an example defining the main cavity. This is an active cavity of order 1 with r=1 with sin(Phi) equal to the energy loss per turn
 cavities:
   - name:  'main'
@@ -28,10 +34,10 @@ cavities:
    # For a passive cavity, we swap relative voltage for shunt impedance
   - name:  'hhc1'
     type: "passive"
-    shunt: 9.02d6 # shunt impedence in Mega Ohms
+    shunt: 9.02d6 # shunt impedence in Ohms
+    quality: 1d6 # unitless
+    detuning: 4.5d4 # frequency in Hz
     order: 3
-    Phase: 80.22 
-  # For a passive cavity, we swap relative voltage for shunt impedance
   - name:  'hhc2'
     type: "active"
     r: -0.5 # this means that the voltage is half the value of mains and opposite in signage

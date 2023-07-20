@@ -212,7 +212,6 @@ TEST_CASE("Testing MomentGeneratorDiscrete and wrapper functions...") {
     true_val = 75;
     calc = Bchs.MomentGeneratorPXTrans(2);
     CHECK( ( abs(sqrt(calc)-true_val) < epsilon) == true);
-
 }
 
 uint64_t Bunch::bunch_id_generator = 0;

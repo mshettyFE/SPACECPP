@@ -8,6 +8,7 @@
 class ActiveCavity: public Cavity{
   private:
     double r; // relative voltage
+    double Phase;
   public:
     ActiveCavity(std::string cav_name, double relative_voltage, double Phase, double order);
     // Voltage has this signature to be consistant with PassiveCavity class

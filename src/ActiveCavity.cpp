@@ -9,7 +9,10 @@ ActiveCavity::ActiveCavity(std::string cav_name, double relative_voltage, double
   name = cav_name;
   r = relative_voltage;
   Phase= CavityPhase;
-  order = CavityOrder;
+  if(CavityOrder <1.0){
+    std::runtime_error("Cavity order is not at least 1");
+  }
+  order = (int) CavityOrder;
 };
 
 double ActiveCavity::Voltage(double tau, const Bunch bunch, const std::unordered_map<std::string,std::string> ParameterMap){
@@ -18,5 +21,5 @@ double ActiveCavity::Voltage(double tau, const Bunch bunch, const std::unordered
 }
 
 void ActiveCavity::print(){
-  std::cout << "Cavity: " << name << '\t' << "Type: Active" << "\t" << "RelVol:" << r << '\t' << "Phase: " << Phase << '\t' << "Order: " <<  order << std::endl;
+  std::cout << "Cavity: " << name << '\t' << "Type: Active" << "\t" << "RelVoltage:" << r << '\t' << "Phase: " << Phase << '\t' << "Order: " <<  order << std::endl;
 }
