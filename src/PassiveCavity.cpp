@@ -3,15 +3,15 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
+#include <cmath>
 
-PassiveCavity::PassiveCavity(std::string cav_name, double shunt, double qual_f, double det_freq, double CavityOrder){
+PassiveCavity::PassiveCavity(std::string cav_name, int n_harm, double base_freq, double shunt, double qual_f, double det_freq, int CavityOrder){
+  nharm =n_harm;
+  frf = base_freq;
   name = cav_name;
   shunt_impedance = shunt;
   quality_factor = qual_f;
   detune_freq = det_freq;
-  if(CavityOrder <1.0){
-    std::runtime_error("Cavity order is not at least 1");
-  }
   order = CavityOrder;
 };
 

@@ -1,5 +1,12 @@
 ---
 # we make a list of cavities with various properties
+
+# We define some common properties that are shared amoungst all cavities
+Vrf: 3.6d6                           #Voltage of main cavity (V)
+nharm: 1320                          #Harmonic number of main cavity
+frf: 504.412d6                       #rf frequency of ring (multiply by 2*pi for angular frequency)
+
+
 # To define a new cavity, we go the the next line , indent 2 spaces, adding a - , and then type the name of the cavity
 # On the immediate next line, indenting by 2 spaces and specifying it's type
 # The possible types are
@@ -24,7 +31,7 @@
 #  - detuning frequency
 #  - order of cavity
 
-# Below is an example defining the main cavity. This is an active cavity of order 1 with r=1 with sin(Phi) equal to the energy loss per turn
+# Below is an example defining the main cavity. This is an active cavity of order 1 with r=1
 cavities:
   - name:  'main'
     type: "active"

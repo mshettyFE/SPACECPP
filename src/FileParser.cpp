@@ -341,12 +341,6 @@ bool ValidateInputs(std::unordered_map<std::string,std::string> InputFileMap){
                     ValidityChecking(InputFileMap, "npop", MIN_INCLUSIVE, 1) &&
 // Check that nbunches exists and is strictly greater than or equal to 1
                     ValidityChecking(InputFileMap, "nbunches", MIN_INCLUSIVE, 1) &&
-// Check that Vrf exists and is greater than or equal to 0
-                    ValidityChecking(InputFileMap, "Vrf", MIN_INCLUSIVE, 0) &&
-// Check that nharm exists and is greater or equal to 1
-                    ValidityChecking(InputFileMap, "nharm", MIN_INCLUSIVE, 1) &&
-// Check that frf exists and is greater or or equal to 0
-                    ValidityChecking(InputFileMap, "frf", MIN_INCLUSIVE, 0) &&
 // Check that E0 exists and is strictly greater than 0
                     ValidityChecking(InputFileMap, "E0", MIN_EXCLUSIVE, 0) &&
 // Check that sig_d exists and is strictly greater than 0
@@ -402,6 +396,47 @@ bool ReadCavityParameters(std::string fname,const std::unordered_map<std::string
     return false;  
   }
 
+// Read in Vrf, nharm, frf
+    YAML::Node VrfNode = config["Vrf"];
+    YAML::Node nharmNode = config["nharm"];
+    YAML::Node frfNode = config["frf"];
+    if(!VrfNode){
+      std::cerr << "Couldn't find Vrf in " << fname << std::endl;
+    }
+    if(!nharmNode){
+      std::cerr << "Couldn't find nharm in " << fname << std::endl;
+      return false;
+    }
+    if(!frfNode){
+      std::cerr << "Couldn't find frf in " << fname << std::endl;
+      return false;
+    }
+    
+    std::unordered_map<std::string,std::string> GlobalCavityVariables;
+    GlobalCavityVariables["Vrf"] = VrfNode.as<std::string>();
+    GlobalCavityVariables["nharm"] = nharmNode.as<std::string>();
+    GlobalCavityVariables["frf"] = frfNode.as<std::string>();
+    for(auto item: GlobalCavityVariables){
+        double temp;
+        if(!StrToDouble(item.second,temp)){
+            std::cerr << "Attempted to convert: " << item.second << " to C++ style double " << std::endl;
+            return false;
+        }    
+    }
+
+    // Make sure Vrf is at greater than 0, nharm is at least 1, and frf is greater than 0
+    bool valid = ValidityChecking(GlobalCavityVariables, "Vrf", MIN_EXCLUSIVE, 0) &&
+    ValidityChecking(GlobalCavityVariables, "nharm", MIN_INCLUSIVE, 1) &&
+    ValidityChecking(GlobalCavityVariables, "frf", MIN_EXCLUSIVE, 0);
+    if(!valid){
+      std::cerr << "Couldn't parse Vrf, nharm, and frf in " << fname << std::endl;
+      return false;
+    }
+    double Vrf, nharm_d, frf;
+    StrToDouble(VrfNode.as<std::string>(),Vrf);
+    StrToDouble(nharmNode.as<std::string>(),nharm_d);
+    StrToDouble(frfNode.as<std::string>(),frf);
+    int nharm = (int) nharm_d;
 // Interate through each cavity
   int count = 0;
   for ( YAML::const_iterator it = cavData.begin(); it != cavData.end(); ++it) {
@@ -447,8 +482,8 @@ bool ReadCavityParameters(std::string fname,const std::unordered_map<std::string
             std::string cname = AttrMap.at("name");
             double r = std::stod(AttrMap.at("r"));
             double Phase = std::stod(AttrMap.at("Phase"));
-            double Order = std::stod(AttrMap.at("order"));
-            cavities.push_back(std::make_unique<ActiveCavity>(cname,r, Phase,Order));
+            int  Order = (int) std::stod(AttrMap.at("order"));
+            cavities.push_back(std::make_unique<ActiveCavity>(cname,Vrf, nharm, frf, r, Phase,Order));
         }
         else{
           return false;
@@ -462,10 +497,10 @@ bool ReadCavityParameters(std::string fname,const std::unordered_map<std::string
           ValidityChecking(AttrMap, "quality", MIN_EXCLUSIVE, 0)){
             std::string cname = AttrMap.at("name");
             double shunt = std::stod(AttrMap.at("shunt"));
-            double Order = std::stod(AttrMap.at("shunt"));
+            int Order = (int) std::stod(AttrMap.at("shunt"));
             double qual = std::stod(AttrMap.at("quality"));
             double detune=  std::stod(AttrMap.at("detuning"));
-            cavities.push_back(std::make_unique<PassiveCavity>(cname,shunt, qual, detune, Order));
+            cavities.push_back(std::make_unique<PassiveCavity>(cname, nharm, frf, shunt, qual, detune, Order));
         }
         else{
           std::cerr << "Invalid cavity type" << std::endl;

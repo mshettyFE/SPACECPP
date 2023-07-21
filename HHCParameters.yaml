@@ -2,9 +2,6 @@ nturns: 50000                 #Number of turns around ring
 npop: 200                   #Number of particles 
 nbunches: 100                       #Number of bunches
 E0: 3d9                              #Reference particle energy (eV)
-Vrf: 3.6d6                           #Voltage of main cavity (V)
-nharm: 1320                          #Harmonic number of main cavity
-frf: 504.412d6                       #rf frequency of ring
 igap: 0                              #RF bucket gap
 MyGap: 1320                          #! Not needed!
 sig_d: 7.88d-4                       #Momentum spread of detector (dimensionless)
