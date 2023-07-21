@@ -12,6 +12,7 @@
 #include "yaml-cpp/yaml.h"
 
 #include "Cavity.h"
+#include "Constants.h"
 #include "ActiveCavity.h"
 #include "PassiveCavity.h"
 #include "FileParser.h"
@@ -337,10 +338,6 @@ bool ValidateInputs(std::unordered_map<std::string,std::string> InputFileMap){
 // function that validates input parameters from .yaml file. Need to edit this function if we add more parameters
 // Check that nturns exists and is greater than or equal to 1
    bool output =  (ValidityChecking(InputFileMap, "nturns", MIN_INCLUSIVE, 1) &&
-// Check that npop exists and is strictly greater than or equal to 1
-                    ValidityChecking(InputFileMap, "npop", MIN_INCLUSIVE, 1) &&
-// Check that nbunches exists and is strictly greater than or equal to 1
-                    ValidityChecking(InputFileMap, "nbunches", MIN_INCLUSIVE, 1) &&
 // Check that E0 exists and is strictly greater than 0
                     ValidityChecking(InputFileMap, "E0", MIN_EXCLUSIVE, 0) &&
 // Check that sig_d exists and is strictly greater than 0
@@ -517,8 +514,8 @@ bool ReadCavityParameters(std::string fname,const std::unordered_map<std::string
   }
   return true;
 }
-bool ReadBunchParameters(std::string fname, std::unordered_map<Coords, std::tuple<double,double>>& coord_parameters ){
-// Read in contents of .yaml file containing cavity data
+bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
+// Read in contents of .yaml file containing bunch data
   YAML::Node config;
   try{
     config = YAML::LoadFile(fname);
@@ -528,50 +525,81 @@ bool ReadBunchParameters(std::string fname, std::unordered_map<Coords, std::tupl
     return false;
   }
 // Test for mu and sigma for all coordinates
-    YAML::Node tau_mu = config["tau_mu"];
-    YAML::Node tau_sigma = config["tau_sigma"];
-    YAML::Node delta_mu = config["delta_mu"];
-    YAML::Node delta_sigma = config["delta_sigma"];
-    YAML::Node x_trans_mu = config["x_trans_mu"];
-    YAML::Node x_trans_sigma = config["x_trans_sigma"];
-    YAML::Node px_trans_mu = config["px_trans_mu"];
-    YAML::Node px_trans_sigma = config["px_trans_sigma"];
-    if(!(tau_mu && tau_sigma && delta_mu && delta_sigma && x_trans_mu && x_trans_sigma && px_trans_sigma && px_trans_sigma)){
-      std::cerr << "Missing parameters to generate random initial particle position" <<  std::endl;
+    YAML::Node npop_node = config["npop"];
+    YAML::Node nbunches_node = config["nbunches"];
+    YAML::Node gap_node = config["gap"];
+    YAML::Node random_vars_node = config["random_vars"];
+    if(!(npop_node && nbunches_node && gap_node && random_vars_node)){
+      std::cerr << "Missing parameters to generate bunches" <<  std::endl;
       return false;
     }
 
     std::unordered_map<std::string, std::string> TempMap;
-    TempMap["tau_mu"] = tau_mu.as<std::string>();
-    TempMap["tau_sigma"] = tau_sigma.as<std::string>();
-    TempMap["delta_mu"] = delta_mu.as<std::string>();
-    TempMap["delta_sigma"] = delta_sigma.as<std::string>();
-    TempMap["x_trans_mu"] = x_trans_mu.as<std::string>();
-    TempMap["x_trans_sigma"] = x_trans_sigma.as<std::string>();
-    TempMap["px_trans_mu"] = px_trans_mu.as<std::string>();
-    TempMap["px_trans_sigma"] = px_trans_sigma.as<std::string>();
+    TempMap["npop"] = npop_node.as<std::string>();
+    TempMap["nbunches"] = nbunches_node.as<std::string>();
+    TempMap["gap"] = gap_node.as<std::string>();
     
     bool valid = 
-        ValidityChecking(TempMap, "tau_mu", IS_VALID) &&
-        ValidityChecking(TempMap, "tau_sigma", MIN_EXCLUSIVE, 0) &&
-        ValidityChecking(TempMap, "delta_mu", IS_VALID) &&
-        ValidityChecking(TempMap, "delta_sigma", MIN_EXCLUSIVE, 0) &&
-        ValidityChecking(TempMap, "x_trans_mu", IS_VALID) &&
-        ValidityChecking(TempMap, "x_trans_sigma", MIN_EXCLUSIVE, 0) &&
-        ValidityChecking(TempMap, "px_trans_mu", IS_VALID) &&
-        ValidityChecking(TempMap, "px_trans_sigma", MIN_EXCLUSIVE, 0);
-  if(! valid){
-    std::cerr << "couldn't parse parameters for random initial particle distribution " << std::endl;
+        ValidityChecking(TempMap, "npop", MIN_INCLUSIVE, 1) &&
+        ValidityChecking(TempMap, "nbunches", MIN_INCLUSIVE, 1);
+  if(!valid){
+    std::cerr << "couldn't parse either npop or nbunches in " << fname << std::endl;
+    return false;  
+  }
+  double temp;
+  StrToDouble(TempMap["npop"],temp);
+  uint64_t npop = (int) temp;
+  StrToDouble(TempMap["nbunches"],temp);
+  int nbunches = (int) temp;
+  if(!ValidityChecking(TempMap,"gap", MIN_INCLUSIVE_MAX_EXCLUSIVE, 0, nbunches)){
+    std::cerr << "couldn't parse gaps in " << fname << std::endl;
+    return false;  
+  }
+  StrToDouble(TempMap["gap"],temp);
+  int gap = (int) temp;
+  TempMap.clear();
+    for(YAML::const_iterator attr = random_vars_node.begin(); attr != random_vars_node.end(); ++attr){
+// Read in attributes of a cavity as string
+      std::string key = attr->first.as<std::string>();
+      std::string str_val = attr->second.as<std::string>();
+      TempMap[key] = str_val;
+    }
+  valid = 
+      ValidityChecking(TempMap, "tau_mu", IS_VALID) &&
+      ValidityChecking(TempMap, "tau_sigma", MIN_EXCLUSIVE, 0) &&
+      ValidityChecking(TempMap, "delta_mu", IS_VALID) &&
+      ValidityChecking(TempMap, "delta_sigma", MIN_EXCLUSIVE, 0) &&
+      ValidityChecking(TempMap, "x_trans_mu", MIN_INCLUSIVE) &&
+      ValidityChecking(TempMap, "x_trans_sigma", MIN_EXCLUSIVE, 0) &&
+      ValidityChecking(TempMap, "px_trans_mu", MIN_INCLUSIVE) &&
+      ValidityChecking(TempMap, "px_trans_sigma", MIN_EXCLUSIVE, 0);
+  if(!valid){
+    std::cerr << "Couldn't parse input random variable parameters from " << fname << std::endl;
     return false;
   }
-  std::tuple<double,double> val = std::make_tuple(std::stod(TempMap["tau_mu"]),std::stod(TempMap["tau_sigma"]));
-  coord_parameters[TAU] = val;
-  val =  std::make_tuple(std::stod(TempMap["delta_mu"]),std::stod(TempMap["delta_sigma"]));
-  coord_parameters[DELTA] = val;
-  val = std::make_tuple(std::stod(TempMap["x_trans_mu"]),std::stod(TempMap["x_trans_sigma"]));
-  coord_parameters[X_TRANS] = val;
-  val = std::make_tuple(std::stod(TempMap["px_trans_mu"]),std::stod(TempMap["px_trans_sigma"]));
-  coord_parameters[PX_TRANS] = val;
+  std::unordered_map<Coords, std::tuple<double,double>> coord_parameters;
+  double t1,t2;
+  StrToDouble(TempMap["tau_mu"],t1);
+  StrToDouble(TempMap["tau_sigma"],t2);
+  coord_parameters[TAU] = std::make_tuple(t1,t2);
+  //delta
+  StrToDouble(TempMap["delta_mu"],t1);
+  StrToDouble(TempMap["delta_sigma"],t2);
+  coord_parameters[DELTA] = std::make_tuple(t1,t2);
+  //x_Trans
+  StrToDouble(TempMap["x_trans_mu"],t1);
+  StrToDouble(TempMap["x_trans_sigma"],t2);
+  coord_parameters[X_TRANS] = std::make_tuple(t1,t2);
+  //px_Trans
+  StrToDouble(TempMap["px_trans_mu"],t1);
+  StrToDouble(TempMap["px_trans_sigma"],t2);
+  coord_parameters[PX_TRANS] = std::make_tuple(t1,t2);
+  for(int i=0; i< nbunches-gap; ++i){
+    bunches.push_back(Bunch(npop,coord_parameters));
+  }
+  for(int i=nbunches-gap; i< nbunches; ++i){
+    bunches.push_back(Bunch(0,coord_parameters));
+  }
   return true;
 }
 

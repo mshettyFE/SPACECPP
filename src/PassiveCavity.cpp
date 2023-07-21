@@ -1,5 +1,6 @@
 #include "PassiveCavity.h"
 #include "Bunch.h"
+#include "Constants.h"
 #include <iostream>
 #include <unordered_map>
 #include <string>
@@ -13,9 +14,11 @@ PassiveCavity::PassiveCavity(std::string cav_name, int n_harm, double base_freq,
   quality_factor = qual_f;
   detune_freq = det_freq;
   order = CavityOrder;
+  Phi = atan(detune_freq/(order*nharm*frf));
 };
 
-double PassiveCavity::Voltage(double tau,const  Bunch bunch, const std::unordered_map<std::string,std::string> ParameterMap){
+double PassiveCavity::Voltage(double tau, const Bunch bunch){
+// Assumes uniform filling. Couldn't find a formula for general case
   return 0.0;
 }
 

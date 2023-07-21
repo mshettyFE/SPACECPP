@@ -16,16 +16,15 @@ class Bunch{
     std::vector<Particle> sim_parts; // array of particles assigned to the bunch
 // Public functions
   public:
-    Bunch(std::unordered_map<std::string,std::string> ParameterMap, std::unordered_map<Coords, std::tuple<double,double>> coord_parameters);
     Bunch(uint64_t nparticles, std::unordered_map<Coords, std::tuple<double,double>> coord_parameters);
-    double MomentGeneratorTau(int moment_number);
-    double MomentGeneratorDelta(int moment_number);
-    double MomentGeneratorXTrans(int moment_number);
-    double MomentGeneratorPXTrans(int moment_number);
-    void print();
+    double MomentGeneratorTau(int moment_number) const ;
+    double MomentGeneratorDelta(int moment_number) const ;
+    double MomentGeneratorXTrans(int moment_number) const ;
+    double MomentGeneratorPXTrans(int moment_number) const ;
+    void print() const ;
 // Private functions
   private:
-    double MomentGeneratorDiscrete(Coords coordinate, int moment_number);
+    double MomentGeneratorDiscrete(Coords coordinate, int moment_number) const ;
 
 };
 #endif

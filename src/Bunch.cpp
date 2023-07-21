@@ -12,37 +12,9 @@
 
 #include "doctest.h"
 
-Bunch::Bunch(std::unordered_map<std::string,std::string> ParameterMap, std::unordered_map<Coords, std::tuple<double,double>> coord_parameters){
-    double v=  std::stod(ParameterMap["npop"]);
-    int nparticles = static_cast<int>(v);
-    if(nparticles <=0){
-      std::runtime_error("Bunch instantiated with fewer than less than 0");
-    }
-    bunch_id = ++bunch_id_generator;
-    // seed and define gaussian rngs for each coordinate
-    static thread_local std::mt19937 generator;
-    auto tau_tup = coord_parameters[TAU];
-    std::normal_distribution<double> tau_dist(std::get<0>(tau_tup),std::get<1>(tau_tup));
-    auto delta_tup = coord_parameters[DELTA];
-    std::normal_distribution<double> delta_dist(std::get<0>(delta_tup),std::get<1>(delta_tup));
-    auto x_trans_tup = coord_parameters[X_TRANS];
-    std::normal_distribution<double> x_trans_dist(std::get<0>(x_trans_tup),std::get<1>(x_trans_tup));
-    auto px_trans_tup = coord_parameters[PX_TRANS];
-    std::normal_distribution<double> px_trans_dist(std::get<0>(px_trans_tup),std::get<1>(px_trans_tup));
-    
-    double tau_roll, delta_roll, x_trans_roll, px_trans_roll;
-    for(uint64_t i=0; i<nparticles; ++i){
-      tau_roll = tau_dist(generator);
-      delta_roll = delta_dist(generator);
-      x_trans_roll = x_trans_dist(generator);
-      px_trans_roll = px_trans_dist(generator);
-      sim_parts.push_back(Particle(tau_roll,delta_roll,x_trans_roll, px_trans_roll ));
-    }
-}
-
 Bunch::Bunch(uint64_t nparticles, std::unordered_map<Coords, std::tuple<double,double>> coord_parameters){
-    if(nparticles <=0){
-      std::runtime_error("Bunch instantiated with fewer than less than 0. Need more than 0");
+    if(nparticles <0){
+      std::runtime_error("Bunch instantiated with fewer than 0. Need at least 0 (0 corresponds to empty rf bucket");
     }
     bunch_id = ++bunch_id_generator;
     // seed and define gaussian rngs for each coordinate
@@ -66,7 +38,7 @@ Bunch::Bunch(uint64_t nparticles, std::unordered_map<Coords, std::tuple<double,d
     }
 }
 
-void Bunch::print(){
+void Bunch::print() const {
     std::cout << bunch_id << "\n";
     for(auto p : sim_parts){
       std::cout << '\t';
@@ -74,7 +46,7 @@ void Bunch::print(){
     }
 }
 
-double Bunch::MomentGeneratorDiscrete(Coords coordinate, int moment_number){
+double Bunch::MomentGeneratorDiscrete(Coords coordinate, int moment_number) const{
 // Calculate nth moment of a coordinate on the bunch
   double moment = 0.0;
   if(moment_number < 0){
@@ -147,19 +119,19 @@ double Bunch::MomentGeneratorDiscrete(Coords coordinate, int moment_number){
   return moment;
 }
 
-double Bunch::MomentGeneratorTau(int moment_number){
+double Bunch::MomentGeneratorTau(int moment_number) const{
   double v  = MomentGeneratorDiscrete(TAU, moment_number);
   return v;
 }
-double Bunch::MomentGeneratorDelta(int moment_number){
+double Bunch::MomentGeneratorDelta(int moment_number) const {
   double v  = MomentGeneratorDiscrete(DELTA, moment_number);
   return v;
 }
-double Bunch::MomentGeneratorXTrans(int moment_number){
+double Bunch::MomentGeneratorXTrans(int moment_number) const {
   double v  = MomentGeneratorDiscrete(X_TRANS, moment_number);
   return v;
 }
-double Bunch::MomentGeneratorPXTrans(int moment_number){
+double Bunch::MomentGeneratorPXTrans(int moment_number) const {
   double v  = MomentGeneratorDiscrete(PX_TRANS, moment_number);
   return v;
 }

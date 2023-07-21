@@ -99,19 +99,18 @@ int main(int argc, char** argv){
       return -1;
     }
 
-// Read in cavity configuration
-    std::unordered_map<Coords, std::tuple<double,double>> coord_parameters;
-    bool randomGenRead = ReadBunchParameters(BunchParameterName,coord_parameters );
+// Read in bunch configuration
+    std::vector<Bunch> Bunches;
+    bool randomGenRead = ReadBunchParameters(BunchParameterName,Bunches );
     if(!randomGenRead){
       return -1;
     }
-    double v = std::stod(ParameterMap["nbunches"]);
-    int nbunches = static_cast<int>(v);
-    std::vector<Bunch> Bunches;
-    for(int i=0; i<nbunches; ++i){
-      auto b = Bunch(ParameterMap, coord_parameters);
-      Bunches.push_back(b);
+    if(verbose){
+      for(auto b : Bunches){
+//        b.print();
+      }    
     }
+    
 /*
 // Defining useful combinations of input parameters
 // Angular frequency around the ring

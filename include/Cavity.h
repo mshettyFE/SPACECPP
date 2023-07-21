@@ -19,7 +19,7 @@ class Cavity{
   public:
     // Need to verify ParameterMap when you load it from file (see FileParser.h)
     // Need to override voltage and print with another class (probably need to do this when doing beam-loading compensation (ie. active-passive cavity)?)
-    virtual double Voltage(double tau,const Bunch bunch, const std::unordered_map<std::string,std::string> ParameterMap) = 0;
+    virtual double Voltage(double tau,const Bunch bunch) = 0;
     // print out parameters of the cavity
     virtual void print() = 0;
 };

@@ -1,5 +1,6 @@
 #include "ActiveCavity.h"
 #include "Bunch.h"
+#include "Constants.h"
 #include <iostream>
 #include <unordered_map>
 #include <string>
@@ -15,9 +16,8 @@ ActiveCavity::ActiveCavity(std::string cav_name, double ref_v, int n_harm, doubl
   order = CavityOrder;
 };
 
-double ActiveCavity::Voltage(double tau, const Bunch bunch, const std::unordered_map<std::string,std::string> ParameterMap){
-  
-  return 0.0;
+double ActiveCavity::Voltage(double tau, const Bunch bunch){
+  return Vrf*sin(order*nharm*2*pi*frf*tau+Phase);
 }
 
 void ActiveCavity::print(){

@@ -17,6 +17,7 @@
 
 #include "Constants.h"
 #include "Cavity.h"
+#include "Bunch.h"
 
 // Convert Fortran double to C++ double (Should probably extend to accept c++ format as well)
 bool StrToDouble(std::string parameter_value_str,double& out_value);
@@ -37,7 +38,7 @@ bool ValidateInputs(std::unordered_map<std::string,std::string> InputFileMap);
 // Cavity parameter parsing
 bool ReadCavityParameters(std::string fname, const std::unordered_map<std::string,std::string> InputFileMap, std::vector<std::unique_ptr<Cavity>>& cavities);
 // Bunch parameter parsing
-bool ReadBunchParameters(std::string fname, std::unordered_map<Coords, std::tuple<double,double>>& coord_parameters );
+bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches );
 // Print input values 
 void PrintInputMap(const std::unordered_map<std::string,std::string> Map);
 // Print random number generation parameters 
