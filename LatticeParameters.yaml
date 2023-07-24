@@ -1,1 +1,10 @@
-temp
+E0: 3d9                   # Reference particle energy in (eV)
+vrf: 3.6d6                # Reference voltage of main cavity (eV)
+nharm: 1320               # Harmonic number of main cavity
+frf: 504.412d6            # rf frequency of ring (multiply by 
+Aver_curr: 0.5d0          # Average current of beam
+gap: 0                    # RF bucket gap (lattice)
+sig_d: 7.88d-4            # Momentum spread of detector
+alpha_C: 5.951d-5         # momentum compaction
+Uloss: 11.352d6           # Energy loss per turn (eV)
+rjs: 1.81d0               # longitudinal rad partition number

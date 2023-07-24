@@ -1,0 +1,13 @@
+rangetau: 400d-12 # Longitudinal grid size
+FourierCoeff: 50  # Number of fourier coefficient in long distance calculation
+ng1: 1319
+ng2: 2
+ng1g2: 2000
+npart: 120000
+ngridd: 256
+NJ: 400
+NG: 128
+NTY: 10
+nup: 19
+nup1: 19
+nharmh: 1320

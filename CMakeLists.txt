@@ -37,6 +37,8 @@ add_executable(SPACE src/main.cpp
   src/Bunch.cpp
   src/PassiveCavity.cpp
   src/ActiveCavity.cpp
+  src/ValidateInput.cpp
+  src/Parameters.cpp
 )
 target_link_libraries(SPACE ${FileParseName})
 target_link_libraries(SPACE ${FFTW3_LIBRARIES})

@@ -10,49 +10,63 @@
 
 #include "fftw3.h"
 
-#include "FileParser.h"
 #include "Constants.h"
-#include"Bunch.h"
+#include "ValidateInput.h"
+#include "FileParser.h"
+#include "Bunch.h"
+#include "Parameters.h"
 
 // Comment out below to enable unit tests
 #define DOCTEST_CONFIG_DISABLE
-
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest.h"
 
 int main(int argc, char** argv){
-  std::string ParameterName;
   std::string verbose_str;
-  std::string CavityParameterName;
   std::string BunchParameterName;
+  std::string CavityParameterName;
+  std::string LatticeParameterName;
+  std::string TimeEvolutionParameterName;
+  std::string WakefieldParameterName;
   bool verbose;
-  if(argc < 5){
-    std::cout << argv[0] << '\t' << "Input_parameter_yaml Cavity_parameter_yaml Bunch_parameter_yaml Verbose(0 or 1)" << std::endl;
+  if(argc < 7){
+    std::cout << argv[0] << '\t' << "BunchParameterYAML CavityParameterYAML LatticeParameterYAML TimeEvolutionYAML WakefieldParameterYAML Verbose(0 or 1)" << std::endl;
     return -1;
   }
   else{  
-    ParameterName = argv[1];
+    BunchParameterName = argv[1];
     CavityParameterName = argv[2];
-    BunchParameterName = argv[3];
+    LatticeParameterName = argv[3];
+    TimeEvolutionParameterName = argv[4];
+    WakefieldParameterName = argv[5];
     std::stringstream stream;
-    verbose_str = argv[4];
+    verbose_str = argv[6];
     // convert verbose argument to boolean
     stream << verbose_str;
     stream >> verbose;
   }
 // Don't perform unit testing if directive flag is off    
 #ifndef DOCTEST_CONFIG_DISABLE
+  // Redirect cerr to file
   std::ofstream err_file;
   std::string err_file_name = "TestingOutput.err";
   err_file.open(err_file_name);
-  // Redirect cerr to file
-  std::streambuf* stream_buffer_file = err_file.rdbuf();
-  std::cerr.rdbuf(stream_buffer_file);
+  std::streambuf* stream_buffer_err_file = err_file.rdbuf();
+  std::cerr.rdbuf(stream_buffer_err_file);
+  // Redirect cout to file
+  std::ofstream out_file;
+  std::string out_file_name = "TestingOutput.out";
+  out_file.open(out_file_name);
+  // Reference to original stout buffer
+  std::streambuf* stream_buffer_cout = std::cout.rdbuf();
+  std::streambuf* stream_buffer_out_file = out_file.rdbuf();
+  std::cout.rdbuf(stream_buffer_out_file);
   doctest::Context ctx;
   ctx.applyCommandLine(argc, argv);
   ctx.setOption("no-breaks", true); 
   int res = ctx.run(); 
-  std::cout << "All output was written to " << err_file_name << std::endl;
+  std::cout.rdbuf(stream_buffer_cout);
+  std::cout << "All errors was written to " << err_file_name << " and all output was written to " << out_file_name << std::endl;
   err_file.close();
   return 0;
 #endif
@@ -79,17 +93,28 @@ int main(int argc, char** argv){
   std::unordered_map<std::string,std::shared_ptr<std::ofstream>> FileMapping;
   bool OpenFileSucess = OpenOutputFiles(OutputFileNames,FileMapping);
 // Read input parameters
-  std::unordered_map<std::string,std::string> ParameterMap;
-  bool f =ReadInputParameters(ParameterName, ParameterMap);
-  if(f && verbose){
-      PrintInputMap(ParameterMap);
+  Parameters GlobalParameters = Parameters();
+    bool f = ReadLatticeParameters(LatticeParameterName, GlobalParameters);
+  if(!f){
+      std::cerr << "Couldn't read " << LatticeParameterName << std::endl;
+      return -1;
   }
-  else{
-    return -1;
+    f = ReadTimeEvolutionParameters(TimeEvolutionParameterName, GlobalParameters);
+  if(!f){
+      std::cerr << "Couldn't read " << TimeEvolutionParameterName << std::endl;
+      return -1;
+  }
+    f = ReadWakefieldParameters(WakefieldParameterName, GlobalParameters);
+  if(!f){
+      std::cerr << "Couldn't read " << WakefieldParameterName << std::endl;
+      return -1;
+  }
+  if(verbose){
+    GlobalParameters.print();
   }
 // Read in cavity configuration
     std::vector<std::unique_ptr<Cavity>> cavities;
-    bool cavityRead = ReadCavityParameters(CavityParameterName,ParameterMap, cavities);
+    bool cavityRead = ReadCavityParameters(CavityParameterName, cavities);
     if(cavityRead && verbose){
       for(const auto& cav : cavities){
         cav->print();

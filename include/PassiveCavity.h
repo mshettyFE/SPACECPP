@@ -1,19 +1,20 @@
 #ifndef PASSIVE_CAVITY
 #define PASSIVE_CAVITY
 #include "Cavity.h"
+#include "Parameters.h"
 #include <unordered_map>
 #include <string>
 
 class PassiveCavity: public Cavity{
   private:
-    double shunt_impedance; // shunt_impedance of cavity
-    double quality_factor;
+    double unloaded_shunt_impedance; // shunt_impedance of cavity
+    double unloaded_quality_factor;
     double detune_freq;
     double Phi;
   public:
-    PassiveCavity(std::string cav_name, int n_harm, double frf, double shunt, double qual_f, double det_freq, int CavityOrder);
+    PassiveCavity(std::string cav_name, double unloaded_shunt, double unloaded_qual_f, double det_freq, int CavityOrder, double beta);
     // Need to verify ParameterMap when you load it from file (see FileParser.h)
-    double Voltage(double tau, const Bunch bunch) override;
+    double Voltage(double tau, const Bunch bunch, Parameters Para) override;
     // print parameters of cavity
     void print() override;
 
