@@ -14,6 +14,9 @@
 #include "ActiveCavity.h"
 #include "PassiveCavity.h"
 #include "ValidateInput.h"
+#include "Bunch.h"
+#include "GaussDist.h"
+#include "UniformDist.h"
 #include "FileParser.h"
 #include "Parameters.h"
 
@@ -46,6 +49,53 @@ bool ValidateUnorderedMapWrapper(Parameters& Para, std::unordered_map<std::strin
   return true;
 }
 
+bool ValidateCoordinateWrapper(Coords coordinate, YAML::Node CurNode, std::unordered_map<Coords, std::shared_ptr<ProbDist>> &function_map, Parameters GlobalParas){
+    YAML::Node ProbDistNode = CurNode["prob_dist"];
+    if(!ProbDistNode){
+      std::cerr << "Couldn't locate type of distribution for coordinate " << coordinate << std::endl;
+      return false;
+    }
+    std::string dist_type = ProbDistNode.as<std::string>();
+    std::transform(dist_type.begin(), dist_type.end(), dist_type.begin(), [](unsigned char c){ return std::tolower(c); });
+    Parameters FunctionParas = Parameters();
+    if(dist_type=="gauss"){
+      bool suc_parse_gauss = ValidateYAMLWrapper(FunctionParas, CurNode, "mu", DOUBLE, IS_VALID) &&
+    ValidateYAMLWrapper(FunctionParas, CurNode, "sigma", DOUBLE, MIN_EXCLUSIVE, 0);
+      if(!suc_parse_gauss){
+        std::cerr << "Couldn't parse gaussian parameters for coordinate " << coordinate << std::endl;
+        return false;
+      }
+      else{
+        double mu, sigma;
+        bool mu_check = FunctionParas.get_parameter("mu",mu);
+        bool sigma_check = FunctionParas.get_parameter("sigma",sigma);
+        double min_x = mu-5.0*sigma;
+        double max_x = mu+5.0*sigma;
+        auto dist = std::shared_ptr<GaussDist>(new GaussDist(FunctionParas, min_x, max_x, GlobalParas));
+          function_map.insert(std::make_pair(coordinate, std::move(dist)));
+      }
+    }
+    else if(dist_type=="uniform"){
+      bool suc_parse_uniform = ValidateYAMLWrapper(FunctionParas, CurNode, "max", DOUBLE, IS_VALID) &&
+    ValidateYAMLWrapper(FunctionParas, CurNode, "min", DOUBLE, IS_VALID);
+      if(!suc_parse_uniform){
+        std::cerr << "Couldn't parse gaussian parameters for coordinate " << coordinate << std::endl;
+        return false;
+      }
+      else{
+        double min_x, max_x;
+        bool min_check = FunctionParas.get_parameter("min",min_x);
+        bool max_check = FunctionParas.get_parameter("max",max_x);        
+        auto dist = std::shared_ptr<UniformDist>(new UniformDist(FunctionParas, min_x, max_x, GlobalParas));
+        function_map.insert(std::make_pair(coordinate, std::move(dist)));
+      }
+    }
+    else{
+      std::cerr << "Invalid distribution type" << std::endl;
+      return false;
+    }
+    return true;
+}
 
 
 bool ReadLatticeParameters(std::string fname, Parameters& Para){
@@ -291,48 +341,32 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
   }
   int gap;
   TempPara.get_parameter("gap", gap);
-
-  YAML::Node RandVarNode = config["random_vars"];
-  if(!RandVarNode){
-    std::cerr << "Couldn't locate random_vars tag in " << fname << std::endl;
+  YAML::Node tau_node, delta_node, x_trans_node, px_trans_node;
+  tau_node = config["tau"];
+  delta_node = config["delta"];
+  x_trans_node = config["x_trans"];
+  px_trans_node = config["px_trans"];
+  if(!(tau_node && delta_node && x_trans_node && px_trans_node)){
+    std::cerr << "Couldn't locate all coordinates in " << fname << std::endl;
     return false;
   }
-  TempPara = Parameters();
-    bool valid = ValidateYAMLWrapper(TempPara, RandVarNode, "tau_mu", DOUBLE, IS_VALID)&&
-        ValidateYAMLWrapper(TempPara, RandVarNode, "tau_sigma", DOUBLE, MIN_EXCLUSIVE, 0) &&
-         ValidateYAMLWrapper(TempPara, RandVarNode, "delta_mu", DOUBLE, IS_VALID)&&
-        ValidateYAMLWrapper(TempPara, RandVarNode, "delta_sigma", DOUBLE, MIN_EXCLUSIVE, 0) &&
-         ValidateYAMLWrapper(TempPara, RandVarNode, "x_trans_mu", DOUBLE, IS_VALID)&&
-        ValidateYAMLWrapper(TempPara, RandVarNode, "x_trans_sigma", DOUBLE, MIN_EXCLUSIVE, 0) &&
-         ValidateYAMLWrapper(TempPara, RandVarNode, "px_trans_mu", DOUBLE, IS_VALID)&&
-        ValidateYAMLWrapper(TempPara, RandVarNode, "px_trans_sigma", DOUBLE, MIN_EXCLUSIVE, 0);
-    if(!valid){
-      std::cerr << "Couldn't parse input random variable parameters from " << fname << std::endl;
-      return false;
-    }
-  std::unordered_map<Coords, std::tuple<double,double>> coord_parameters;
-  double t1,t2;
-  TempPara.get_parameter("tau_mu",t1);
-  TempPara.get_parameter("tau_sigma",t2);
-  coord_parameters[TAU] = std::make_tuple(t1,t2);
-  //delta
-  TempPara.get_parameter("delta_mu",t1);
-  TempPara.get_parameter("delta_sigma",t2);
-  coord_parameters[DELTA] = std::make_tuple(t1,t2);
-  //x_Trans
-  TempPara.get_parameter("x_trans_mu",t1);
-  TempPara.get_parameter("x_trans_sigma",t2);
-  coord_parameters[X_TRANS] = std::make_tuple(t1,t2);
-  //px_Trans
-  TempPara.get_parameter("px_trans_mu",t1);
-  TempPara.get_parameter("px_trans_sigma",t2);
-  coord_parameters[PX_TRANS] = std::make_tuple(t1,t2);
+  std::unordered_map<Coords, std::shared_ptr<ProbDist>> function_map;
+        
+  bool valid_tau = ValidateCoordinateWrapper(TAU, tau_node, function_map);
+  bool valid_delta = ValidateCoordinateWrapper(DELTA, delta_node, function_map);
+  bool valid_x_trans = ValidateCoordinateWrapper(X_TRANS, x_trans_node, function_map);
+  bool valid_px_trans = ValidateCoordinateWrapper(PX_TRANS, px_trans_node, function_map);
+  if(!(valid_tau && valid_delta && valid_x_trans && valid_px_trans)){
+    std::cerr << "Couldn't parse parameters in " << fname << std::endl;
+    return false;
+  }
   for(int i=0; i< nbunches-gap; ++i){
-    bunches.push_back(Bunch(npop,coord_parameters));
+    bunches.push_back(Bunch(npop, function_map));
   }
   for(int i=nbunches-gap; i< nbunches; ++i){
-    bunches.push_back(Bunch(0,coord_parameters));
+    bunches.push_back(Bunch(0, function_map));
   }
+    
   return true;
 }
 

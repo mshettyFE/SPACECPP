@@ -1,16 +1,25 @@
 npop: 200                   #Number of particles 
 nbunches: 100                       #Number of bunches
 gap: 0
-random_vars:
 # Arrival time in picoseconds (ps)
-  tau_mu: 0
-  tau_sigma: 3
+tau:
+  prob_dist: Gauss
+  mu: 0
+  sigma: 3
 # normalized momentum deviation (unitless)
-  delta_mu: 0
-  delta_sigma: .1
+delta:
+  prob_dist: Uniform
+  min: -5
+  max: 5
+#  mu: 0
+#  sigma: 3
 # transverse position
-  x_trans_mu: 0
-  x_trans_sigma: 1
+x_trans:
+  prob_dist: Gauss
+  mu: 0
+  sigma: 1
 # transverse momentum
+px_trans:
+  prob_dist: Gauss
   px_trans_mu: 0
   px_trans_sigma: 1

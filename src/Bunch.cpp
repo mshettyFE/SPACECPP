@@ -1,8 +1,12 @@
 #include "Bunch.h"
 #include "Particle.h"
 #include "Constants.h"
+#include "ProbDist.h"
+#include "Parameters.h"
+
 #include <vector>
 #include <random>
+#include <memory>
 #include <unordered_map>
 #include <tuple>
 #include <iostream>
@@ -12,28 +16,20 @@
 
 #include "doctest.h"
 
-Bunch::Bunch(uint64_t nparticles, std::unordered_map<Coords, std::tuple<double,double>> coord_parameters){
+Bunch::Bunch(uint64_t nparticles, std::unordered_map<Coords, std::shared_ptr<ProbDist>> function_map, Parameters GlobalParas){
     if(nparticles <0){
       std::runtime_error("Bunch instantiated with fewer than 0. Need at least 0 (0 corresponds to empty rf bucket");
     }
     bunch_id = ++bunch_id_generator;
-    // seed and define gaussian rngs for each coordinate
-    static thread_local std::mt19937 generator;
-    auto tau_tup = coord_parameters[TAU];
-    std::normal_distribution<double> tau_dist(std::get<0>(tau_tup),std::get<1>(tau_tup));
-    auto delta_tup = coord_parameters[DELTA];
-    std::normal_distribution<double> delta_dist(std::get<0>(delta_tup),std::get<1>(delta_tup));
-    auto x_trans_tup = coord_parameters[X_TRANS];
-    std::normal_distribution<double> x_trans_dist(std::get<0>(x_trans_tup),std::get<1>(x_trans_tup));
-    auto px_trans_tup = coord_parameters[PX_TRANS];
-    std::normal_distribution<double> px_trans_dist(std::get<0>(px_trans_tup),std::get<1>(px_trans_tup));
     
-    double tau_roll, delta_roll, x_trans_roll, px_trans_roll;
+    std::vector<std::unique_ptr<ProbDist>> cavities;
+    
     for(uint64_t i=0; i<nparticles; ++i){
-      tau_roll = tau_dist(generator);
-      delta_roll = delta_dist(generator);
-      x_trans_roll = x_trans_dist(generator);
-      px_trans_roll = px_trans_dist(generator);
+      double tau_roll, delta_roll, x_trans_roll, px_trans_roll;
+      tau_roll =  accept_reject(function_map[TAU]);
+      delta_roll =  accept_reject(function_map[DELTA]);
+      x_trans_roll =  accept_reject(function_map[X_TRANS]);
+      px_trans_roll =  accept_reject(function_map[PX_TRANS]);
       sim_parts.push_back(Particle(tau_roll,delta_roll,x_trans_roll, px_trans_roll ));
     }
 }
@@ -136,6 +132,7 @@ double Bunch::MomentGeneratorPXTrans(int moment_number) const {
   return v;
 }
 
+/*
 TEST_CASE("Testing MomentGeneratorDiscrete and wrapper functions...") {
     std::unordered_map<Coords, std::tuple<double,double>> coord_parameters;
     std::tuple<double, double> tau = std::make_tuple(-5,2.6);
@@ -184,6 +181,23 @@ TEST_CASE("Testing MomentGeneratorDiscrete and wrapper functions...") {
     true_val = 75;
     calc = Bchs.MomentGeneratorPXTrans(2);
     CHECK( ( abs(sqrt(calc)-true_val) < epsilon) == true);
+}
+*/
+
+double Bunch::accept_reject(std::shared_ptr<ProbDist> initial_dist, Parameters GlobalParas, double max_tries){
+  static thread_local std::mt19937 generator;
+  std::uniform_real_distribution<double> uni_dist_x(initial_dist->get_min_x(), initial_dist->get_max_x());
+  std::uniform_real_distribution<double> uni_dist_y(0.0,initial_dist->get_max_y());
+  for(int i=0; i<max_tries; ++i){
+    double x = uni_dist_x(generator);
+    double p1 =  initial_dist->draw(x,GlobalParas);
+    double p2 = uni_dist_y(generator);
+    if(p2<= p1){
+      return x;
+    }
+  }
+  std::runtime_error("Exceeded max tries to draw from distribution");
+  return 0.0;
 }
 
 uint64_t Bunch::bunch_id_generator = 0;

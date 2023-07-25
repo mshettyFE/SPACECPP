@@ -10,7 +10,6 @@ class PassiveCavity: public Cavity{
     double unloaded_shunt_impedance; // shunt_impedance of cavity
     double unloaded_quality_factor;
     double detune_freq;
-    double Phi;
   public:
     PassiveCavity(std::string cav_name, double unloaded_shunt, double unloaded_qual_f, double det_freq, int CavityOrder, double beta);
     // Need to verify ParameterMap when you load it from file (see FileParser.h)

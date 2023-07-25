@@ -57,4 +57,5 @@
   enum Type {INT, DOUBLE, STRING};
 
   enum CavityType {ACTIVE, PASSIVE};
+
 #endif

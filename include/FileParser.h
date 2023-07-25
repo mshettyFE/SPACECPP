@@ -24,6 +24,8 @@ bool ValidateYAMLWrapper(Parameters& Para, YAML::Node CurNode, std::string key, 
 
 bool ValidateUnorderedMapWrapper(Parameters& Para, std::unordered_map<std::string,std::string> map,std::string key, Type t, ValidityCheckingFlags flag, double boundary1=0.0, double boundary2=0.0);
 
+bool ValidateCoordinateWrapper(Coords coordinate, YAML::Node CurNode, std::unordered_map<Coords, std::shared_ptr<ProbDist>> &function_map, Parameters GlobalParas = Parameters());
+
 bool ReadLatticeParameters(std::string fname, Parameters& Para);
 bool ReadTimeEvolutionParameters(std::string fname, Parameters& Para);
 bool ReadWakefieldParameters(std::string fname, Parameters& Para);

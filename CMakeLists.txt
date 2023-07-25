@@ -39,6 +39,9 @@ add_executable(SPACE src/main.cpp
   src/ActiveCavity.cpp
   src/ValidateInput.cpp
   src/Parameters.cpp
+  src/ProbDist.cpp
+  src/GaussDist.cpp
+  src/UniformDist.cpp
 )
 target_link_libraries(SPACE ${FileParseName})
 target_link_libraries(SPACE ${FFTW3_LIBRARIES})
