@@ -18,16 +18,17 @@ class Bunch{
     std::vector<Particle> sim_parts; // array of particles assigned to the bunch
 // Public functions
   public:
-    Bunch(uint64_t nparticles, std::unordered_map<Coords, std::shared_ptr<ProbDist>> function_map, Parameters GlobalParas= Parameters());
+    Bunch(uint64_t nparticles, std::unordered_map<Coords, std::unique_ptr<ProbDist>>& function_map, Parameters GlobalParas= Parameters());
     double MomentGeneratorTau(int moment_number) const ;
     double MomentGeneratorDelta(int moment_number) const ;
     double MomentGeneratorXTrans(int moment_number) const ;
     double MomentGeneratorPXTrans(int moment_number) const ;
     void print() const ;
+    void write_data(std::string fname);
 // Private functions
   private:
     double MomentGeneratorDiscrete(Coords coordinate, int moment_number) const ;
     // performs accept reject algorithm on arbitrary probability distribution (ie. normalized function)
-    double accept_reject(std::shared_ptr<ProbDist> initial_dist, Parameters GlobalParas = Parameters(),  double max_tries=1000);
+    double accept_reject(std::unique_ptr<ProbDist>& initial_dist, Parameters GlobalParas = Parameters(),  int max_tries=1000);
 };
 #endif

@@ -16,10 +16,12 @@ class Parameters{
   public:
     bool add_parameter(std::string name,std::string candidate_value, Type t);
     bool remove_parameter(std::string name);
-    bool get_parameter(std::string name, int& var);
-    bool get_parameter(std::string name, double& var);
-    bool get_parameter(std::string name, std::string& var);
+    template <typename Output>
+    bool get_parameter(std::string name, Output& var);
     void print();
+  private:
+    template <typename Output>
+    bool match_type(std::tuple<std::string, Type> val_tup, Output& var);
 };
 
 #endif

@@ -23,6 +23,7 @@
 
 int main(int argc, char** argv){
   std::string verbose_str;
+// input yaml file names
   std::string BunchParameterName;
   std::string CavityParameterName;
   std::string LatticeParameterName;
@@ -53,20 +54,11 @@ int main(int argc, char** argv){
   err_file.open(err_file_name);
   std::streambuf* stream_buffer_err_file = err_file.rdbuf();
   std::cerr.rdbuf(stream_buffer_err_file);
-  // Redirect cout to file
-  std::ofstream out_file;
-  std::string out_file_name = "TestingOutput.out";
-  out_file.open(out_file_name);
-  // Reference to original stout buffer
-  std::streambuf* stream_buffer_cout = std::cout.rdbuf();
-  std::streambuf* stream_buffer_out_file = out_file.rdbuf();
-  std::cout.rdbuf(stream_buffer_out_file);
   doctest::Context ctx;
   ctx.applyCommandLine(argc, argv);
   ctx.setOption("no-breaks", true); 
   int res = ctx.run(); 
-  std::cout.rdbuf(stream_buffer_cout);
-  std::cout << "All errors was written to " << err_file_name << " and all output was written to " << out_file_name << std::endl;
+  std::cout << "All errors was written to " << err_file_name << std::endl;
   err_file.close();
   return 0;
 #endif
@@ -130,10 +122,8 @@ int main(int argc, char** argv){
     if(!randomGenRead){
       return -1;
     }
-    if(verbose){
-      for(auto b : Bunches){
-//        b.print();
-      }    
+    else{
+      std::cout << "Sucessfully Parsed " << BunchParameterName << std::endl;
     }
     
 /*

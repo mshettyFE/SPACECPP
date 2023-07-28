@@ -25,6 +25,10 @@ void Particle::update(double tau_in, double delta_in, double x_trans_in, double 
       x_trans = x_trans_in;
       px_trans = px_trans_in;
 };
+void Particle::setDelta(double del){delta = del;};
+void Particle::setTau(double t){tau = t;};
+void Particle::setXTrans(double x){x_trans = x;};
+void Particle::setPXTrans(double px){px_trans = px;};
 
 // getter methods
 double Particle::getDelta(){return delta;};

@@ -1,10 +1,12 @@
 #include "Bunch.h"
 #include "Particle.h"
 #include "Constants.h"
-#include "ProbDist.h"
 #include "Parameters.h"
+#include "ProbDist.h"
+#include "GaussDist.h"
 
 #include <vector>
+#include <fstream>
 #include <random>
 #include <memory>
 #include <unordered_map>
@@ -16,14 +18,12 @@
 
 #include "doctest.h"
 
-Bunch::Bunch(uint64_t nparticles, std::unordered_map<Coords, std::shared_ptr<ProbDist>> function_map, Parameters GlobalParas){
+Bunch::Bunch(uint64_t nparticles, std::unordered_map<Coords, std::unique_ptr<ProbDist>>& function_map, Parameters GlobalParas){
     if(nparticles <0){
-      std::runtime_error("Bunch instantiated with fewer than 0. Need at least 0 (0 corresponds to empty rf bucket");
+      throw std::runtime_error("Bunch instantiated with fewer than 0. Need at least 0 (0 corresponds to empty rf bucket");
     }
     bunch_id = ++bunch_id_generator;
-    
-    std::vector<std::unique_ptr<ProbDist>> cavities;
-    
+// for each particle, perform basic accept_reject method to generate arbitrary distribution along a coordinate according to some derived class of ProbDist.h
     for(uint64_t i=0; i<nparticles; ++i){
       double tau_roll, delta_roll, x_trans_roll, px_trans_roll;
       tau_roll =  accept_reject(function_map[TAU]);
@@ -42,11 +42,23 @@ void Bunch::print() const {
     }
 }
 
+void Bunch::write_data(std::string fname){
+// write phase space coordinate data to basic csv file
+  std::ofstream myfile;
+  myfile.open (fname);
+  myfile << "Tau,Delta,X,PX" << std::endl;
+  for(auto p : sim_parts){
+    myfile << p.getTau() <<',' << p.getDelta() << ',' << p.getXTrans() << ',' << p.getPXTrans() << std::endl;
+  }
+  myfile.close();
+}
+
+
 double Bunch::MomentGeneratorDiscrete(Coords coordinate, int moment_number) const{
 // Calculate nth moment of a coordinate on the bunch
   double moment = 0.0;
   if(moment_number < 0){
-    std::runtime_error("Invalid moment number (must be at least 0)");
+    throw std::runtime_error("Invalid moment number (must be at least 0)");
   }
   if(moment_number == 0){
 // normalized 0 moment of any distribution is just 1.
@@ -72,7 +84,7 @@ double Bunch::MomentGeneratorDiscrete(Coords coordinate, int moment_number) cons
             tally += p.getPXTrans();
             break;
         default:
-            std::runtime_error("Invalid coordinate for moment generation");
+            throw std::runtime_error("Invalid coordinate for moment generation");
             break;
     }
   }
@@ -105,7 +117,7 @@ double Bunch::MomentGeneratorDiscrete(Coords coordinate, int moment_number) cons
             dif = p.getPXTrans()-mean;
             break;
         default:
-            std::runtime_error("Invalid coordinate for moment generation");
+            throw std::runtime_error("Invalid coordinate for moment generation");
             break;
     }
     tally += pow(dif,moment_number);
@@ -132,19 +144,32 @@ double Bunch::MomentGeneratorPXTrans(int moment_number) const {
   return v;
 }
 
-/*
 TEST_CASE("Testing MomentGeneratorDiscrete and wrapper functions...") {
-    std::unordered_map<Coords, std::tuple<double,double>> coord_parameters;
-    std::tuple<double, double> tau = std::make_tuple(-5,2.6);
-    coord_parameters[TAU] = tau;
-    std::tuple<double, double> delta = std::make_tuple(0.6,1.2);
-    coord_parameters[DELTA] = delta;
-    std::tuple<double, double> xt = std::make_tuple(0,1);
-    coord_parameters[X_TRANS] = xt;
-    std::tuple<double, double> pxt = std::make_tuple(23,75);
-    coord_parameters[PX_TRANS] = pxt;
-    // Generate 1 million particles to test
-    Bunch Bchs(1000000,coord_parameters);
+    std::unordered_map<Coords, std::unique_ptr<ProbDist>> func_map;
+    
+    Parameters func_para = Parameters();
+    func_para.add_parameter("mu","-5",  DOUBLE);
+    func_para.add_parameter("sigma","2.6",  DOUBLE);
+    std::cout << "Mu: -5 sigma: 2.6" << std::endl;
+    func_map[TAU] = std::make_unique<GaussDist>(func_para);
+   
+    func_para = Parameters();
+    func_para.add_parameter("mu","0.6",  DOUBLE);
+    func_para.add_parameter("sigma","1.2",  DOUBLE);
+    func_map[DELTA] = std::make_unique<GaussDist>(func_para);
+    
+    func_para = Parameters();
+    func_para.add_parameter("mu","0",  DOUBLE);
+    func_para.add_parameter("sigma","1",  DOUBLE);
+    func_map[X_TRANS] = std::make_unique<GaussDist>(func_para);
+    
+    func_para = Parameters();
+    func_para.add_parameter("mu","23",  DOUBLE);
+    func_para.add_parameter("sigma","75",  DOUBLE);
+    func_map[PX_TRANS] = std::make_unique<GaussDist>(func_para);
+
+    Bunch Bchs(100000, func_map);
+    Bchs.write_data("TestBunch.csv");
     double epsilon = 1E-1;
     double true_val, calc;
     // TAU
@@ -182,12 +207,18 @@ TEST_CASE("Testing MomentGeneratorDiscrete and wrapper functions...") {
     calc = Bchs.MomentGeneratorPXTrans(2);
     CHECK( ( abs(sqrt(calc)-true_val) < epsilon) == true);
 }
-*/
 
-double Bunch::accept_reject(std::shared_ptr<ProbDist> initial_dist, Parameters GlobalParas, double max_tries){
+
+double Bunch::accept_reject(std::unique_ptr<ProbDist>& initial_dist, Parameters GlobalParas, int max_tries){
+// Accept reject is a simple monte carlo method to sample any arbitrary pdf
+// Imagine a rectange that encompasses your pdf. The rectange has width = upper_x-lower_x and a height that is equal to the absolute maximum of the pdf
+// you randomly pick a point within this rectange. if this point lies above the desired pdf, you reject the point and re-roll. If it is below the pdf, then you accept the point and exit.
+// If you select enough random points, you can approximate the desired pdf to an arbitrary precision.
+// This implementation assumes that the function is univariate (ie. there is only 1 local maximum of the pdf)
+// TODO: If you wanted to extend this to handle multivariate initial distribution, you would need to modify get_a_max function of your derived ProbDist class appropriately (one way to do this is to randomly select points on your interval, find the local maxima of each of these points, and then poll the max of these maximum. I didn't do this because the functions I care about for initial distributions are univariate (guassians, quartics etc).
   static thread_local std::mt19937 generator;
-  std::uniform_real_distribution<double> uni_dist_x(initial_dist->get_min_x(), initial_dist->get_max_x());
-  std::uniform_real_distribution<double> uni_dist_y(0.0,initial_dist->get_max_y());
+  std::uniform_real_distribution<double> uni_dist_x(initial_dist->get_lower_x(), initial_dist->get_upper_x());
+  std::uniform_real_distribution<double> uni_dist_y(0.0,initial_dist->get_max());
   for(int i=0; i<max_tries; ++i){
     double x = uni_dist_x(generator);
     double p1 =  initial_dist->draw(x,GlobalParas);
@@ -196,7 +227,7 @@ double Bunch::accept_reject(std::shared_ptr<ProbDist> initial_dist, Parameters G
       return x;
     }
   }
-  std::runtime_error("Exceeded max tries to draw from distribution");
+  throw std::runtime_error("Exceeded max tries to draw from distribution");
   return 0.0;
 }
 

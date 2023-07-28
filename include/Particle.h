@@ -23,6 +23,11 @@ class Particle{
     Particle();
     // update coorinates of particle
     void update(double del,double t,double x,double px);
+    // set individual coordinate of particle
+    void setDelta(double del);
+    void setTau(double t);
+    void setXTrans(double x);
+    void setPXTrans(double px);
     // Extract coordinates from particle
     double getDelta();
     double getTau();

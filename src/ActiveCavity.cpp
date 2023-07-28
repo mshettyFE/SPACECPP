@@ -6,12 +6,14 @@
 #include <string>
 #include <cmath>
 
-ActiveCavity::ActiveCavity(std::string cav_name, double relative_voltage, double CavityPhase, double BLA, int CavityOrder, double beta){
+ActiveCavity::ActiveCavity(std::string cav_name, double relative_voltage, double CavityPhase, double BLA, int CavityOrder, double CavityBeta){
   name = cav_name;
+  cav_type = ACTIVE;
   r = relative_voltage;
-  Phase= CavityPhase;
+  Phase= CavityPhase*pi/180.0; // convert to radians
   BeamLoadingAngle = BLA;
   order = CavityOrder;
+  beta= CavityBeta;
 };
 
 double ActiveCavity::Voltage(double tau, const Bunch bunch, Parameters Para){
@@ -21,7 +23,7 @@ double ActiveCavity::Voltage(double tau, const Bunch bunch, Parameters Para){
       Para.get_parameter("nharm", nharm) &&
       Para.get_parameter("frf", frf);
   if(!read_success){
-    std::runtime_error("Couldn't read parameters for Active cavity " + name);
+    throw std::runtime_error("Couldn't read parameters for Active cavity " + name);
   }
   return Vrf*sin(order*nharm*2*pi*frf*tau+Phase);
 }

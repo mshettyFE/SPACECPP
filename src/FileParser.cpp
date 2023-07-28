@@ -16,11 +16,11 @@
 #include "ValidateInput.h"
 #include "Bunch.h"
 #include "GaussDist.h"
-#include "UniformDist.h"
 #include "FileParser.h"
 #include "Parameters.h"
 
 bool ValidateYAMLWrapper(Parameters& Para, YAML::Node CurNode, std::string key, Type t, ValidityCheckingFlags flag, double boundary1, double boundary2){
+// Takes in a YAML Node, verifies that key-value pair exists, and checks that value can be converted to a double
   auto it = CurNode[key];
   if(!it){
     std::cerr << "Couldn't read " << key << std::endl;
@@ -49,15 +49,20 @@ bool ValidateUnorderedMapWrapper(Parameters& Para, std::unordered_map<std::strin
   return true;
 }
 
-bool ValidateCoordinateWrapper(Coords coordinate, YAML::Node CurNode, std::unordered_map<Coords, std::shared_ptr<ProbDist>> &function_map, Parameters GlobalParas){
+bool ValidateCoordinateWrapper(Coords coordinate, YAML::Node CurNode, std::unordered_map<Coords, std::unique_ptr<ProbDist>> &function_map, Parameters GlobalParas){
+// takes in a YAML node that contains prob_dist tag and verifies that the distribution is valid
+// currently only supports gaussians
+// need to add quartics
     YAML::Node ProbDistNode = CurNode["prob_dist"];
     if(!ProbDistNode){
       std::cerr << "Couldn't locate type of distribution for coordinate " << coordinate << std::endl;
       return false;
     }
     std::string dist_type = ProbDistNode.as<std::string>();
+// lower case lamdba function
     std::transform(dist_type.begin(), dist_type.end(), dist_type.begin(), [](unsigned char c){ return std::tolower(c); });
     Parameters FunctionParas = Parameters();
+// mu must be a valid double and sigma must 
     if(dist_type=="gauss"){
       bool suc_parse_gauss = ValidateYAMLWrapper(FunctionParas, CurNode, "mu", DOUBLE, IS_VALID) &&
     ValidateYAMLWrapper(FunctionParas, CurNode, "sigma", DOUBLE, MIN_EXCLUSIVE, 0);
@@ -65,30 +70,7 @@ bool ValidateCoordinateWrapper(Coords coordinate, YAML::Node CurNode, std::unord
         std::cerr << "Couldn't parse gaussian parameters for coordinate " << coordinate << std::endl;
         return false;
       }
-      else{
-        double mu, sigma;
-        bool mu_check = FunctionParas.get_parameter("mu",mu);
-        bool sigma_check = FunctionParas.get_parameter("sigma",sigma);
-        double min_x = mu-5.0*sigma;
-        double max_x = mu+5.0*sigma;
-        auto dist = std::shared_ptr<GaussDist>(new GaussDist(FunctionParas, min_x, max_x, GlobalParas));
-          function_map.insert(std::make_pair(coordinate, std::move(dist)));
-      }
-    }
-    else if(dist_type=="uniform"){
-      bool suc_parse_uniform = ValidateYAMLWrapper(FunctionParas, CurNode, "max", DOUBLE, IS_VALID) &&
-    ValidateYAMLWrapper(FunctionParas, CurNode, "min", DOUBLE, IS_VALID);
-      if(!suc_parse_uniform){
-        std::cerr << "Couldn't parse gaussian parameters for coordinate " << coordinate << std::endl;
-        return false;
-      }
-      else{
-        double min_x, max_x;
-        bool min_check = FunctionParas.get_parameter("min",min_x);
-        bool max_check = FunctionParas.get_parameter("max",max_x);        
-        auto dist = std::shared_ptr<UniformDist>(new UniformDist(FunctionParas, min_x, max_x, GlobalParas));
-        function_map.insert(std::make_pair(coordinate, std::move(dist)));
-      }
+      function_map[coordinate] = std::move(std::make_unique<GaussDist>(FunctionParas,GlobalParas));
     }
     else{
       std::cerr << "Invalid distribution type" << std::endl;
@@ -97,9 +79,7 @@ bool ValidateCoordinateWrapper(Coords coordinate, YAML::Node CurNode, std::unord
     return true;
 }
 
-
 bool ReadLatticeParameters(std::string fname, Parameters& Para){
-  std::cout << "Parsing " << fname << std::endl;
 // Read in contents of .yaml file containing lattice parameters
   YAML::Node config;
   try{
@@ -134,7 +114,6 @@ bool ReadLatticeParameters(std::string fname, Parameters& Para){
 }
 
 bool ReadTimeEvolutionParameters(std::string fname, Parameters& Para){
-  std::cout << "Parsing " << fname << std::endl;
 // Read in contents of .yaml file containing lattice parameters
   YAML::Node config;
   try{
@@ -159,7 +138,6 @@ bool ReadTimeEvolutionParameters(std::string fname, Parameters& Para){
 }
 
 bool ReadWakefieldParameters(std::string fname, Parameters& Para){
-  std::cout << "Parsing " << fname << std::endl;
 // Read in contents of .yaml file containing lattice parameters
   YAML::Node config;
   try{
@@ -174,6 +152,7 @@ bool ReadWakefieldParameters(std::string fname, Parameters& Para){
     ValidateYAMLWrapper(Para, config, "rangetau", DOUBLE, MIN_EXCLUSIVE, 0) &&
 //Fourier Coefficients must be an integer and at least 1
     ValidateYAMLWrapper(Para, config, "FourierCoeff", INT, MIN_INCLUSIVE, 1) &&
+// still need to figure out what these are...
     ValidateYAMLWrapper(Para, config, "ng1", INT, MIN_INCLUSIVE, 1) &&
     ValidateYAMLWrapper(Para, config, "ng2", INT, MIN_INCLUSIVE, 1) &&
     ValidateYAMLWrapper(Para, config, "ng1g2", INT, MIN_INCLUSIVE, 1) &&
@@ -247,6 +226,7 @@ bool ReadCavityParameters(std::string fname, std::vector<std::unique_ptr<Cavity>
     }
     if(AttrMap.at("type")=="active"){
 // We check that r is a valid double, order is at least 1, and phase is between -180 and 180
+// Load angle is between -180 and 180, and beta is greater than or equal to 0
         Parameters TempP = Parameters();
         bool suc_check= 
             ValidateUnorderedMapWrapper(TempP, AttrMap,"r", DOUBLE, IS_VALID) &&
@@ -254,7 +234,7 @@ ValidateUnorderedMapWrapper(TempP, AttrMap,"order", INT, MIN_INCLUSIVE, 1) &&
 ValidateUnorderedMapWrapper(TempP, AttrMap,"Phase", DOUBLE, MIN_INCLUSIVE_MAX_INCLUSIVE, -180, 180) &&
 ValidateUnorderedMapWrapper(TempP, AttrMap,"Load", DOUBLE, MIN_INCLUSIVE_MAX_INCLUSIVE, -180, 180) &&
 ValidateUnorderedMapWrapper(TempP, AttrMap,"Beta", DOUBLE, MIN_INCLUSIVE,0) ;
-        if(suc_check && AttrMap.count("name")!=0){            
+        if(suc_check && AttrMap.count("name")!=0){
             std::string cname = AttrMap.at("name");
             double r, Phase, BLA, beta;
             int Order;
@@ -276,6 +256,7 @@ ValidateUnorderedMapWrapper(TempP, AttrMap,"Beta", DOUBLE, MIN_INCLUSIVE,0) ;
     }
     else if(AttrMap.at("type")=="passive"){
         Parameters TempP = Parameters();
+// shunt impedance is greater than 0, order is at least 1, detuning is a valid double, quality factor is greater than 0, beta is at least 0
         bool suc_check= 
             ValidateUnorderedMapWrapper(TempP, AttrMap,"shunt", DOUBLE, MIN_EXCLUSIVE, 0)&&
             ValidateUnorderedMapWrapper(TempP, AttrMap,"order", INT, MIN_INCLUSIVE, 1) &&
@@ -298,7 +279,6 @@ ValidateUnorderedMapWrapper(TempP, AttrMap,"Beta", DOUBLE, MIN_INCLUSIVE,0) ;
               return false;
             }
         }
-// We check that shunt is strictly positive, order is at least 1, detuning frequency is a valid double, quality factor is stritly positive
         else{
           return false;
         }
@@ -313,6 +293,7 @@ ValidateUnorderedMapWrapper(TempP, AttrMap,"Beta", DOUBLE, MIN_INCLUSIVE,0) ;
   }
   return true;
 }
+
 bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
   std::cout << "Parsing " << fname << std::endl;
 // Read in contents of .yaml file containing bunch data
@@ -350,23 +331,25 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
     std::cerr << "Couldn't locate all coordinates in " << fname << std::endl;
     return false;
   }
-  std::unordered_map<Coords, std::shared_ptr<ProbDist>> function_map;
+
+  std::unordered_map<Coords, std::unique_ptr<ProbDist>> function_map;
         
   bool valid_tau = ValidateCoordinateWrapper(TAU, tau_node, function_map);
   bool valid_delta = ValidateCoordinateWrapper(DELTA, delta_node, function_map);
   bool valid_x_trans = ValidateCoordinateWrapper(X_TRANS, x_trans_node, function_map);
   bool valid_px_trans = ValidateCoordinateWrapper(PX_TRANS, px_trans_node, function_map);
+
   if(!(valid_tau && valid_delta && valid_x_trans && valid_px_trans)){
     std::cerr << "Couldn't parse parameters in " << fname << std::endl;
     return false;
   }
+    
   for(int i=0; i< nbunches-gap; ++i){
     bunches.push_back(Bunch(npop, function_map));
   }
   for(int i=nbunches-gap; i< nbunches; ++i){
     bunches.push_back(Bunch(0, function_map));
   }
-    
   return true;
 }
 
