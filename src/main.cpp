@@ -91,35 +91,50 @@ int main(int argc, char** argv){
       std::cerr << "Couldn't read " << LatticeParameterName << std::endl;
       return -1;
   }
+  else{
+    std::cout << "Sucessfully Parsed " << LatticeParameterName << std::endl;
+  }
     f = ReadTimeEvolutionParameters(TimeEvolutionParameterName, GlobalParameters);
   if(!f){
       std::cerr << "Couldn't read " << TimeEvolutionParameterName << std::endl;
       return -1;
+  }
+  else{
+    std::cout << "Sucessfully Parsed " << TimeEvolutionParameterName << std::endl;
   }
     f = ReadWakefieldParameters(WakefieldParameterName, GlobalParameters);
   if(!f){
       std::cerr << "Couldn't read " << WakefieldParameterName << std::endl;
       return -1;
   }
+  else{
+    std::cout << "Sucessfully Parsed " << WakefieldParameterName << std::endl;
+  }
+
   if(verbose){
     GlobalParameters.print();
   }
 // Read in cavity configuration
     std::vector<std::unique_ptr<Cavity>> cavities;
     bool cavityRead = ReadCavityParameters(CavityParameterName, cavities);
-    if(cavityRead && verbose){
+    if(!cavityRead){
+        std::cerr << "Couldn't read " << CavityParameterName << std::endl;    
+        return -1;
+    }
+    else{
+        std::cout << "Sucessfully Parsed " << CavityParameterName << std::endl;
+    }
+    if(verbose){
       for(const auto& cav : cavities){
         cav->print();
       }
-    }
-    else{
-      return -1;
     }
 
 // Read in bunch configuration
     std::vector<Bunch> Bunches;
     bool randomGenRead = ReadBunchParameters(BunchParameterName,Bunches );
     if(!randomGenRead){
+        std::cerr << "Couldn't read " << CavityParameterName << std::endl;            
       return -1;
     }
     else{

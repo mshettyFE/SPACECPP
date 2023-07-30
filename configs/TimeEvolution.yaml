@@ -3,3 +3,7 @@ kon: 100        # Number of turns radiation damping is artifically scaled
 frad: 1d0       # scaling factor of radiation damping for first kon turns
 nturnon: 200    # Turn on beam loading compensation after nturnon turns
 nhist: 1        # Number of turns back in history you need to look back
+alpha_tau: 1      # Radiation damping constant in tau (1/s)
+Dis_tau: 1        # Dispersion constant in tau  
+alpha_x: 1        # Radiation damping constant in x (1/s)
+Dis_x: 1         # Dispersion constant in x 

@@ -8,7 +8,7 @@
 // Fundamental constants
     const double pi = acos(-1);
     // in meters per second
-    const double c = 299792458;
+    const double light_speed = 299792458;
     // Mass of electron in eV
     const double ElectronRestMass = 0.510998910;
     // Classical electron radius in m

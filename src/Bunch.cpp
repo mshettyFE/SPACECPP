@@ -2,8 +2,9 @@
 #include "Particle.h"
 #include "Constants.h"
 #include "Parameters.h"
+#include "Gaussian.h"
+#include "Quartic.h"
 #include "ProbDist.h"
-#include "GaussDist.h"
 
 #include <vector>
 #include <fstream>
@@ -31,6 +32,14 @@ Bunch::Bunch(uint64_t nparticles, std::unordered_map<Coords, std::unique_ptr<Pro
       x_trans_roll =  accept_reject(function_map[X_TRANS]);
       px_trans_roll =  accept_reject(function_map[PX_TRANS]);
       sim_parts.push_back(Particle(tau_roll,delta_roll,x_trans_roll, px_trans_roll ));
+    }
+}
+
+void Bunch::print_particles() const {
+    std::cout << bunch_id << "\n";
+    for(auto p : sim_parts){
+      std::cout << '\t';
+      p.print();
     }
 }
 
@@ -148,25 +157,44 @@ TEST_CASE("Testing MomentGeneratorDiscrete and wrapper functions...") {
     std::unordered_map<Coords, std::unique_ptr<ProbDist>> func_map;
     
     Parameters func_para = Parameters();
-    func_para.add_parameter("mu","-5",  DOUBLE);
-    func_para.add_parameter("sigma","2.6",  DOUBLE);
-    std::cout << "Mu: -5 sigma: 2.6" << std::endl;
-    func_map[TAU] = std::make_unique<GaussDist>(func_para);
-   
+    double mu = -5;
+    double sigma = 2.6;
+    func_para.add_parameter("mu",std::to_string(mu),  DOUBLE);
+    func_para.add_parameter("sigma",std::to_string(sigma),  DOUBLE);
+    func_para.add_parameter("lower",std::to_string(mu-5*sigma), DOUBLE);
+    func_para.add_parameter("upper",std::to_string(mu+5*sigma), DOUBLE);
+    Gaussian* g1 =  new Gaussian(func_para);
+    func_map[TAU] = std::make_unique<ProbDist>(g1);
+
     func_para = Parameters();
-    func_para.add_parameter("mu","0.6",  DOUBLE);
-    func_para.add_parameter("sigma","1.2",  DOUBLE);
-    func_map[DELTA] = std::make_unique<GaussDist>(func_para);
+    mu = 0.6;
+    sigma = 1.2;
+    func_para.add_parameter("mu",std::to_string(mu),  DOUBLE);
+    func_para.add_parameter("sigma",std::to_string(sigma),  DOUBLE);
+    func_para.add_parameter("lower",std::to_string(mu-5*sigma), DOUBLE);
+    func_para.add_parameter("upper",std::to_string(mu+5*sigma), DOUBLE);
+    Gaussian* g2 = new Gaussian(func_para);
+    func_map[DELTA] = std::make_unique<ProbDist>(g2);
     
     func_para = Parameters();
-    func_para.add_parameter("mu","0",  DOUBLE);
-    func_para.add_parameter("sigma","1",  DOUBLE);
-    func_map[X_TRANS] = std::make_unique<GaussDist>(func_para);
+    mu  = 0;
+    sigma = 1;
+    func_para.add_parameter("mu",std::to_string(mu),  DOUBLE);
+    func_para.add_parameter("sigma",std::to_string(sigma),  DOUBLE);
+    func_para.add_parameter("lower",std::to_string(mu-5*sigma), DOUBLE);
+    func_para.add_parameter("upper",std::to_string(mu+5*sigma), DOUBLE);
+    Gaussian* g3 =  new Gaussian(func_para);
+    func_map[X_TRANS] = std::make_unique<ProbDist>(g3);
     
     func_para = Parameters();
-    func_para.add_parameter("mu","23",  DOUBLE);
-    func_para.add_parameter("sigma","75",  DOUBLE);
-    func_map[PX_TRANS] = std::make_unique<GaussDist>(func_para);
+    mu = 23;
+    sigma = 75;
+    func_para.add_parameter("mu",std::to_string(mu),  DOUBLE);
+    func_para.add_parameter("sigma",std::to_string(sigma),  DOUBLE);
+    func_para.add_parameter("lower",std::to_string(mu-5*sigma), DOUBLE);
+    func_para.add_parameter("upper",std::to_string(mu+5*sigma), DOUBLE);
+    Gaussian* g4 =  new Gaussian(func_para);
+    func_map[PX_TRANS] = std::make_unique<ProbDist>(g4);
 
     Bunch Bchs(100000, func_map);
     Bchs.write_data("TestBunch.csv");
@@ -208,7 +236,6 @@ TEST_CASE("Testing MomentGeneratorDiscrete and wrapper functions...") {
     CHECK( ( abs(sqrt(calc)-true_val) < epsilon) == true);
 }
 
-
 double Bunch::accept_reject(std::unique_ptr<ProbDist>& initial_dist, Parameters GlobalParas, int max_tries){
 // Accept reject is a simple monte carlo method to sample any arbitrary pdf
 // Imagine a rectange that encompasses your pdf. The rectange has width = upper_x-lower_x and a height that is equal to the absolute maximum of the pdf
@@ -217,8 +244,8 @@ double Bunch::accept_reject(std::unique_ptr<ProbDist>& initial_dist, Parameters 
 // This implementation assumes that the function is univariate (ie. there is only 1 local maximum of the pdf)
 // TODO: If you wanted to extend this to handle multivariate initial distribution, you would need to modify get_a_max function of your derived ProbDist class appropriately (one way to do this is to randomly select points on your interval, find the local maxima of each of these points, and then poll the max of these maximum. I didn't do this because the functions I care about for initial distributions are univariate (guassians, quartics etc).
   static thread_local std::mt19937 generator;
-  std::uniform_real_distribution<double> uni_dist_x(initial_dist->get_lower_x(), initial_dist->get_upper_x());
-  std::uniform_real_distribution<double> uni_dist_y(0.0,initial_dist->get_max());
+  std::uniform_real_distribution<double> uni_dist_x(initial_dist->get_lower(), initial_dist->get_upper());
+  std::uniform_real_distribution<double> uni_dist_y(0.0,initial_dist->get_maximum());
   for(int i=0; i<max_tries; ++i){
     double x = uni_dist_x(generator);
     double p1 =  initial_dist->draw(x,GlobalParas);

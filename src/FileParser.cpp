@@ -15,7 +15,9 @@
 #include "PassiveCavity.h"
 #include "ValidateInput.h"
 #include "Bunch.h"
-#include "GaussDist.h"
+#include "Gaussian.h"
+#include "Quartic.h"
+#include "ProbDist.h"
 #include "FileParser.h"
 #include "Parameters.h"
 
@@ -52,7 +54,6 @@ bool ValidateUnorderedMapWrapper(Parameters& Para, std::unordered_map<std::strin
 bool ValidateCoordinateWrapper(Coords coordinate, YAML::Node CurNode, std::unordered_map<Coords, std::unique_ptr<ProbDist>> &function_map, Parameters GlobalParas){
 // takes in a YAML node that contains prob_dist tag and verifies that the distribution is valid
 // currently only supports gaussians
-// need to add quartics
     YAML::Node ProbDistNode = CurNode["prob_dist"];
     if(!ProbDistNode){
       std::cerr << "Couldn't locate type of distribution for coordinate " << coordinate << std::endl;
@@ -62,15 +63,33 @@ bool ValidateCoordinateWrapper(Coords coordinate, YAML::Node CurNode, std::unord
 // lower case lamdba function
     std::transform(dist_type.begin(), dist_type.end(), dist_type.begin(), [](unsigned char c){ return std::tolower(c); });
     Parameters FunctionParas = Parameters();
-// mu must be a valid double and sigma must 
+// mu must be a valid double and sigma must greater than 0
     if(dist_type=="gauss"){
       bool suc_parse_gauss = ValidateYAMLWrapper(FunctionParas, CurNode, "mu", DOUBLE, IS_VALID) &&
-    ValidateYAMLWrapper(FunctionParas, CurNode, "sigma", DOUBLE, MIN_EXCLUSIVE, 0);
+    ValidateYAMLWrapper(FunctionParas, CurNode, "sigma", DOUBLE, MIN_EXCLUSIVE, 0) &&
+    ValidateYAMLWrapper(FunctionParas, CurNode, "lower", DOUBLE,IS_VALID) &&
+    ValidateYAMLWrapper(FunctionParas, CurNode, "upper", DOUBLE, IS_VALID);
       if(!suc_parse_gauss){
         std::cerr << "Couldn't parse gaussian parameters for coordinate " << coordinate << std::endl;
         return false;
       }
-      function_map[coordinate] = std::move(std::make_unique<GaussDist>(FunctionParas,GlobalParas));
+// lower and upper must be valid doubles and upper must be greater than lower. THis gets checked by Gaussian
+      Gaussian* g = new Gaussian(FunctionParas);
+      function_map[coordinate] = std::move(std::make_unique<ProbDist>(g));
+    }
+// the constant of the potential U(q) = exp(-a*q^4) must be greater than 0
+// lower bound and upper bound must be valid doubles
+    else if(dist_type=="quartic"){
+      bool suc_parse_gauss = ValidateYAMLWrapper(FunctionParas, CurNode, "constant", DOUBLE, MIN_EXCLUSIVE,0) &&
+          ValidateYAMLWrapper(FunctionParas, CurNode, "lower", DOUBLE, IS_VALID) &&
+          ValidateYAMLWrapper(FunctionParas, CurNode, "upper", DOUBLE, IS_VALID);
+      if(!suc_parse_gauss){
+        std::cerr << "Couldn't parse quartic parameters for coordinate " << coordinate << std::endl;
+        return false;
+      }
+      double lower, upper, constant;
+      Quartic* q = new Quartic(FunctionParas);
+      function_map[coordinate] = std::move(std::make_unique<ProbDist>(q));
     }
     else{
       std::cerr << "Invalid distribution type" << std::endl;
@@ -133,7 +152,15 @@ bool ReadTimeEvolutionParameters(std::string fname, Parameters& Para){
 // nturnon must be at least 0 and an integer
     ValidateYAMLWrapper(Para, config, "nturnon", INT, MIN_INCLUSIVE, 0) &&
 // nhist must be at least 1 and an integer
-    ValidateYAMLWrapper(Para, config, "nhist", INT, MIN_INCLUSIVE, 1);
+    ValidateYAMLWrapper(Para, config, "nhist", INT, MIN_INCLUSIVE, 1) &&
+// alpha_tau must be at least 0
+    ValidateYAMLWrapper(Para, config, "alpha_tau", DOUBLE, MIN_INCLUSIVE, 0) &&
+// Dist_tau must be at least 0
+    ValidateYAMLWrapper(Para, config, "Dis_tau", DOUBLE, MIN_INCLUSIVE, 0) &&
+// alpha_tau must be at least 0
+    ValidateYAMLWrapper(Para, config, "alpha_x", DOUBLE, MIN_INCLUSIVE, 0) &&
+// Dist_tau must be at least 0
+    ValidateYAMLWrapper(Para, config, "Dis_x", DOUBLE, MIN_INCLUSIVE, 0);
   return output;
 }
 
@@ -168,7 +195,6 @@ bool ReadWakefieldParameters(std::string fname, Parameters& Para){
 }
 
 bool ReadCavityParameters(std::string fname, std::vector<std::unique_ptr<Cavity>>& cavities){
-  std::cout << "Parsing " << fname << std::endl;
 // Read in contents of .yaml file containing cavity data
   YAML::Node config;
   try{
@@ -295,7 +321,6 @@ ValidateUnorderedMapWrapper(TempP, AttrMap,"Beta", DOUBLE, MIN_INCLUSIVE,0) ;
 }
 
 bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
-  std::cout << "Parsing " << fname << std::endl;
 // Read in contents of .yaml file containing bunch data
   YAML::Node config;
   try{

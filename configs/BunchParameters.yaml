@@ -3,23 +3,28 @@ nbunches: 100                       #Number of bunches
 gap: 0
 # Arrival time in picoseconds (ps)
 tau:
-  prob_dist: Gauss
-  mu: 0
-  sigma: 3
+  prob_dist: quartic
+  constant: 0.5
+  lower: -15
+  upper: 15
 # normalized momentum deviation (unitless)
 delta:
   prob_dist: Gauss
   mu: 0
   sigma: 1
-#  mu: 0
-#  sigma: 3
+  lower: -5
+  upper: 5
 # transverse position
 x_trans:
   prob_dist: Gauss
   mu: 0
   sigma: 1
+  lower: -5
+  upper: 5
 # transverse momentum
 px_trans:
   prob_dist: Gauss
   mu: 0
   sigma: 1
+  lower: -5
+  upper: 5

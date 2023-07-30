@@ -24,6 +24,7 @@ class Bunch{
     double MomentGeneratorXTrans(int moment_number) const ;
     double MomentGeneratorPXTrans(int moment_number) const ;
     void print() const ;
+    void print_particles() const ;
     void write_data(std::string fname);
 // Private functions
   private:
