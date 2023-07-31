@@ -14,8 +14,10 @@ class Parameters{
     // Each value is <the actual variable value, the type of the variable being stored>
     std::unordered_map<std::string,std::tuple<std::string,Type>> parameters;
   public:
-    bool add_parameter(std::string name,std::string candidate_value, Type t);
     bool remove_parameter(std::string name);
+    bool add_parameter(std::string name,std::string candidate_value, Type t);
+    template <typename Output>
+    bool add_parameter(std::string name,Output candidate_value, Type t);
     template <typename Output>
     bool get_parameter(std::string name, Output& var);
     void print();

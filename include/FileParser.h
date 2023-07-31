@@ -39,7 +39,4 @@ bool ReadCavityParameters(std::string fname, std::vector<std::unique_ptr<Cavity>
 
 bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches );
 
-// Output file managment
-bool OpenOutputFiles(std::vector<std::string> FileNames,std::unordered_map<std::string,std::shared_ptr<std::ofstream>>& FileMapping);
-bool WriteToOutputFile(std::unordered_map<std::string,std::shared_ptr<std::ofstream>>& FileMap, std::string fname, std::string text);
 #endif

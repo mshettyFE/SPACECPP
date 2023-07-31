@@ -11,13 +11,13 @@ Gaussian::Gaussian(Parameters gauss_paras, Parameters glob_paras){
   if(!parameter_check){
     throw std::runtime_error("Couldn't create gaussian distribution");
   }
-  func_paras.add_parameter("mu",std::to_string(mu),DOUBLE);
-  func_paras.add_parameter("sigma",std::to_string(sigma),DOUBLE);
+  func_paras.add_parameter("mu",mu,DOUBLE);
+  func_paras.add_parameter("sigma",sigma,DOUBLE);
   if(upper_temp <= lower_temp){
     throw std::runtime_error("Upper bound is less than lower bound of gaussian");  
   }
-  func_paras.add_parameter("lower",std::to_string(lower_temp),DOUBLE);
-  func_paras.add_parameter("upper",std::to_string(upper_temp),DOUBLE);
+  func_paras.add_parameter("lower",lower_temp,DOUBLE);
+  func_paras.add_parameter("upper",upper_temp,DOUBLE);
 }
 
 double Gaussian::get_lower(){

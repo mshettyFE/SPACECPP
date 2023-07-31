@@ -1,12 +1,13 @@
-npop: 200                   #Number of particles 
+npop: 2000                   #Number of particles 
 nbunches: 100                       #Number of bunches
 gap: 0
 # Arrival time in picoseconds (ps)
 tau:
-  prob_dist: quartic
-  constant: 0.5
-  lower: -15
-  upper: 15
+  prob_dist: Gauss
+  mu: 0
+  sigma: 30 
+  lower: -100 
+  upper: 100
 # normalized momentum deviation (unitless)
 delta:
   prob_dist: Gauss

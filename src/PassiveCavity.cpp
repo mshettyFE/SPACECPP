@@ -18,7 +18,21 @@ PassiveCavity::PassiveCavity(std::string cav_name, double unloaded_shunt, double
 
 double PassiveCavity::Voltage(double tau, const Bunch bunch, Parameters Para){
 // Assumes uniform filling. Couldn't find a formula for general case
-  return 0.0;
+  double I0, omega0;
+  int nharm;
+  bool check1 = Para.get_parameter("Aver_curr",I0);
+  bool check2 = Para.get_parameter("omega0",omega0);
+  bool check3 = Para.get_parameter("nharm",nharm);
+  if(!(check1 && check2 && check3)){
+    throw std::runtime_error("Couldn't read in Global parameters for Passive cavity voltage");
+  }
+  double Rs = unloaded_shunt_impedance/(1+beta);
+  double Q = unloaded_quality_factor/(1+beta);
+  double cavity_freq = omega0*order*nharm;
+  double Phi = atan(2*Q*detune_freq/cavity_freq);
+  double sigma_tau_squared = bunch.MomentGeneratorTau(2);
+  double I_m = 2*I0*exp(-0.5*cavity_freq*cavity_freq*sigma_tau_squared);
+  return -I_m*Rs*cos(Phi)*cos(Phi+tau/time_scaling_factor*cavity_freq);
 }
 
 void PassiveCavity::print(){

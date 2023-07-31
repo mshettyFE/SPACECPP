@@ -14,9 +14,9 @@ Quartic::Quartic(Parameters function_paras, Parameters glob_paras){
   if(upper_temp <= lower_temp){
     throw std::runtime_error("Upper bound is less than lower bound of gaussian");  
   }
-  func_paras.add_parameter("lower",std::to_string(lower_temp),DOUBLE);
-  func_paras.add_parameter("upper",std::to_string(upper_temp),DOUBLE);
-  func_paras.add_parameter("constant",std::to_string(constant),DOUBLE);
+  func_paras.add_parameter("lower",lower_temp,DOUBLE);
+  func_paras.add_parameter("upper",upper_temp,DOUBLE);
+  func_paras.add_parameter("constant",constant,DOUBLE);
 
 }
 

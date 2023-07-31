@@ -18,6 +18,8 @@
 #  - r: relative voltage with respect to V_rf
 #  - Phase: initial phase of voltage (in degrees)
 #  - order: the order of the cavity
+#  - Load: the offset angle from the generator voltage (currently unused)
+#  - Beta: The beta coupling of the cavity. Alters shunt impedance and quality factor
 
 # For a passive configuration, you need:
 #  - shunt impedance
@@ -31,21 +33,21 @@ cavities:
     type: "active"
     r: 1 # relative voltage (1 means same as mains voltage)
     order: 1
-    Phase: 17 # Modify as needed to match energy loss per turn (U/(V_rf)where U is in units of eV)
+    Phase: 17 # In degrees. Modify as needed to match energy loss per turn (U/(V_rf)where U is in units of eV)
     Load: 0
     Beta: 0
    # For a passive cavity, we swap relative voltage for shunt impedance
-  - name:  'hhc1'
-    type: "passive"
-    shunt: 9.02d6 # shunt impedence in Ohms
-    quality: 1d6 # unitless
-    detuning: 4.5d4 # frequency in Hz
-    order: 3
-    Beta: 0
-  - name:  'hhc2'
-    type: "active"
-    r: -0.5 # this means that the voltage is half the value of mains and opposite in signage
-    order: 2
-    Phase: 80.22
-    Load: 0
-    Beta: 0
+#  - name:  'hhc1'
+#    type: "passive"
+#    shunt: 9.02d6 # shunt impedence in Ohms
+#    quality: 1d6 # unitless
+#    detuning: 4.5d4 # frequency in Hz
+#    order: 3
+#    Beta: 0
+#  - name:  'hhc2'
+#    type: "active"
+#    r: -0.5 # this means that the voltage is half the value of mains and opposite in signage
+#    order: 2
+#    Phase: 80.22
+#    Load: 0
+#    Beta: 0

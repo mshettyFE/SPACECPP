@@ -10,12 +10,13 @@
     // in meters per second
     const double light_speed = 299792458;
     // Mass of electron in eV
-    const double ElectronRestMass = 0.510998910;
+    const double ElectronRestMass = 0.510998910*1e6;
     // Classical electron radius in m
     const double ClassicalElectronRadius = 2.8179409*1E-15;
     // Charge of electron in C
     const double ElectronCharge = 1.60217733E-19;
-    // I don't know where the below came from???
+    //used to scale input time to voltages (1e-12 corresponds to units of picoseconds for tau)
+    const double time_scaling_factor = 1e-12;
 
 // Output file names
     const std::vector<std::string> OutputFileNames = {

@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
-#include <mpi.h>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <complex.h>
@@ -15,6 +15,7 @@
 #include "FileParser.h"
 #include "Bunch.h"
 #include "Parameters.h"
+#include "TimeEvolution.h"
 
 // Comment out below to enable unit tests
 #define DOCTEST_CONFIG_DISABLE
@@ -46,6 +47,7 @@ int main(int argc, char** argv){
     stream << verbose_str;
     stream >> verbose;
   }
+  std::cout << std::setprecision (15);
 // Don't perform unit testing if directive flag is off    
 #ifndef DOCTEST_CONFIG_DISABLE
   // Redirect cerr to file
@@ -81,9 +83,6 @@ int main(int argc, char** argv){
            processor_name, world_rank, world_size);
     MPI_Finalize();
 */
-// Opening output files
-  std::unordered_map<std::string,std::shared_ptr<std::ofstream>> FileMapping;
-  bool OpenFileSucess = OpenOutputFiles(OutputFileNames,FileMapping);
 // Read input parameters
   Parameters GlobalParameters = Parameters();
     bool f = ReadLatticeParameters(LatticeParameterName, GlobalParameters);
@@ -131,16 +130,18 @@ int main(int argc, char** argv){
     }
 
 // Read in bunch configuration
-    std::vector<Bunch> Bunches;
-    bool randomGenRead = ReadBunchParameters(BunchParameterName,Bunches );
+    std::vector<Bunch> bunches;
+    bool randomGenRead = ReadBunchParameters(BunchParameterName,bunches );
     if(!randomGenRead){
-        std::cerr << "Couldn't read " << CavityParameterName << std::endl;            
+        std::cerr << "Couldn't read " << BunchParameterName << std::endl;            
       return -1;
     }
     else{
       std::cout << "Sucessfully Parsed " << BunchParameterName << std::endl;
     }
     
+    bunches[0].write_data("TestBunch.csv");
+    TimeEvolution t  = TimeEvolution(cavities, bunches, GlobalParameters);
 /*
 // Defining useful combinations of input parameters
 // Angular frequency around the ring

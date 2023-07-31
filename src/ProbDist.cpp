@@ -107,9 +107,9 @@ bool ProbDist::find_a_max(double& output, Parameters GlobalParas, double tol, in
 
 TEST_CASE("Quartic generation"){
   Parameters FunctionParas =  Parameters();
-  FunctionParas.add_parameter("constant","0.5",DOUBLE);
-  FunctionParas.add_parameter("upper","10",DOUBLE);
-  FunctionParas.add_parameter("lower","-10",DOUBLE);
+  FunctionParas.add_parameter("constant",0.5,DOUBLE);
+  FunctionParas.add_parameter("upper",10,DOUBLE);
+  FunctionParas.add_parameter("lower",-10,DOUBLE);
   Quartic* q = new Quartic(FunctionParas);
   ProbDist p = ProbDist(q);
   CHECK( (abs(p.get_norm()-2.155800549540928) < 1E-4) == true);
@@ -120,10 +120,10 @@ TEST_CASE("Gaussian generation"){
   double mu, sigma;
   mu = 0.5;
   sigma = 1;
-  FunctionParas.add_parameter("mu",std::to_string(mu),DOUBLE);
-  FunctionParas.add_parameter("sigma",std::to_string(sigma), DOUBLE);
-  FunctionParas.add_parameter("upper",std::to_string(mu+5*sigma),DOUBLE);
-  FunctionParas.add_parameter("lower",std::to_string(mu-5*sigma),DOUBLE);
+  FunctionParas.add_parameter("mu",mu,DOUBLE);
+  FunctionParas.add_parameter("sigma",sigma, DOUBLE);
+  FunctionParas.add_parameter("upper",mu+5*sigma,DOUBLE);
+  FunctionParas.add_parameter("lower",mu-5*sigma,DOUBLE);
   Gaussian* q = new Gaussian(FunctionParas);
   ProbDist p = ProbDist(q);
   CHECK( (abs(p.get_norm()-1.772453850905516) < 1E-4) == true);

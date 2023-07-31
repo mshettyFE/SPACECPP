@@ -115,8 +115,8 @@ bool ReadLatticeParameters(std::string fname, Parameters& Para){
     ValidateYAMLWrapper(Para, config, "vrf", DOUBLE, MIN_EXCLUSIVE, 0) &&
 // nharm is an integer that is greater than 1
     ValidateYAMLWrapper(Para, config, "nharm", INT, MIN_INCLUSIVE, 1) &&
-// frf must be greater than 0
-    ValidateYAMLWrapper(Para, config, "frf", DOUBLE, MIN_EXCLUSIVE, 0) &&
+// f0 must be greater than 0
+    ValidateYAMLWrapper(Para, config, "f0", DOUBLE, MIN_EXCLUSIVE, 0) &&
 // Aver_curr must be greater than 0
     ValidateYAMLWrapper(Para, config, "Aver_curr", DOUBLE, MIN_EXCLUSIVE, 0) &&
 // gap is an integer that is atleast 0
@@ -128,7 +128,30 @@ bool ReadLatticeParameters(std::string fname, Parameters& Para){
 // Uloss must be at least 0
     ValidateYAMLWrapper(Para, config, "Uloss", DOUBLE, MIN_INCLUSIVE, 0) &&
 // rjs must be greater than 0
-    ValidateYAMLWrapper(Para, config, "rjs", DOUBLE, MIN_EXCLUSIVE, 0);
+    ValidateYAMLWrapper(Para, config, "rjs", DOUBLE, MIN_EXCLUSIVE, 0) &&
+// betatron tune must be greater than 0
+    ValidateYAMLWrapper(Para, config, "x_betatron_tune", DOUBLE, MIN_EXCLUSIVE, 0) &&
+// chromaticity must be valid
+    ValidateYAMLWrapper(Para, config, "x_lin_chromaticity", DOUBLE, IS_VALID);
+  double f0;
+  if(!Para.get_parameter("f0",f0)){
+    return false;
+  };
+  double omega0 = f0*2.0*pi;
+  Para.add_parameter("omega0",omega0,DOUBLE);
+  double T0 = 1.0/f0; // convert period from sec to picoseconds
+  Para.add_parameter("T0",T0,DOUBLE);
+  double E0;
+  if(!Para.get_parameter("E0",E0)){
+    return false;
+  };
+  double alpha_C;
+  if(!Para.get_parameter("alpha_C",alpha_C)){
+    return false;
+  };
+  double gamma_naught = E0/ElectronRestMass;
+  double eta = alpha_C-1/(gamma_naught*gamma_naught);
+  Para.add_parameter("eta",eta,DOUBLE);
   return output;
 }
 
@@ -364,49 +387,28 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
   bool valid_x_trans = ValidateCoordinateWrapper(X_TRANS, x_trans_node, function_map);
   bool valid_px_trans = ValidateCoordinateWrapper(PX_TRANS, px_trans_node, function_map);
 
-  if(!(valid_tau && valid_delta && valid_x_trans && valid_px_trans)){
-    std::cerr << "Couldn't parse parameters in " << fname << std::endl;
+  if(!valid_tau){
+    std::cerr << "Couldn't parse coordinate tau in " << fname <<  std::endl;
     return false;
   }
-    
+  if(!valid_delta){
+    std::cerr << "Couldn't parse coordinate delta in " << fname <<  std::endl;
+    return false;
+  }
+  if(!valid_x_trans){
+    std::cerr << "Couldn't parse coordinate x_trans in " << fname <<  std::endl;
+    return false;
+  }
+  if(!valid_px_trans){
+    std::cerr << "Couldn't parse coordinate px_trans in " << fname <<  std::endl;
+    return false;
+  }
+        
   for(int i=0; i< nbunches-gap; ++i){
     bunches.push_back(Bunch(npop, function_map));
   }
   for(int i=nbunches-gap; i< nbunches; ++i){
     bunches.push_back(Bunch(0, function_map));
   }
-  return true;
-}
-
-bool OpenOutputFiles(std::vector<std::string> FileNames,std::unordered_map<std::string,std::shared_ptr<std::ofstream>>& FileMapping){
-// We open a bunch of filestreams
-    for(std::string fname: FileNames){
-        std::shared_ptr<std::ofstream> file = std::make_shared<std::ofstream>(fname);
-        FileMapping[fname] = file;
-        if(!FileMapping[fname] || !*FileMapping[fname]){
-          return false;
-        }
-      }
-    return true;
-}
-
-bool WriteToOutputFile(std::unordered_map<std::string,std::shared_ptr<std::ofstream>>& FileMap, std::string fname, std::string text){
-// Write a string to a particular file
-    auto member = FileMap.find(fname);
-    if (member != FileMap.end()) {
-      auto file_stream = member->second;
-      if(file_stream->is_open()){
-        *file_stream << text << std::endl;
-      }
-      else{
-        std::cerr << "File is not open" << std::endl;
-        return false;
-      }
-      return true;
-    }
-    else {
-      std::cerr << "Key not found" << std::endl;
-      return false;
-    }
   return true;
 }

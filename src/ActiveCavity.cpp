@@ -17,15 +17,15 @@ ActiveCavity::ActiveCavity(std::string cav_name, double relative_voltage, double
 };
 
 double ActiveCavity::Voltage(double tau, const Bunch bunch, Parameters Para){
-  double Vrf, frf;
+  double Vrf, omega0;
   int nharm;
   bool read_success = Para.get_parameter("vrf", Vrf) &&
       Para.get_parameter("nharm", nharm) &&
-      Para.get_parameter("frf", frf);
+      Para.get_parameter("omega0", omega0);
   if(!read_success){
     throw std::runtime_error("Couldn't read parameters for Active cavity " + name);
   }
-  return Vrf*sin(order*nharm*2*pi*frf*tau+Phase);
+  return Vrf*sin(order*nharm*omega0*tau/time_scaling_factor+Phase);
 }
 
 void ActiveCavity::print(){

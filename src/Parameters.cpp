@@ -2,6 +2,8 @@
 #include <unordered_map>
 #include <string>
 #include <type_traits>
+#include <sstream>
+#include <iomanip>
 
 #include "Constants.h"
 #include "ValidateInput.h"
@@ -9,12 +11,53 @@
 
 #include "doctest.h"
 
-bool Parameters::add_parameter(std::string name,std::string candidate_value, Type t){
+template <typename Output>
+bool Parameters::add_parameter(std::string name, Output input_val, Type t){
 // add key to parameter after type checking
   if(parameters.count(name)!=0){
     std::cerr << name << " already exists in parameter list" << std::endl;
     return false;
   }
+  
+  std::stringstream ss;
+  ss << std::setprecision(20) << input_val;
+  std::string candidate_value;
+  ss >> std::setprecision(20) >> candidate_value;
+  
+  switch(t){
+    case INT:
+      try{
+        std::stoi(candidate_value);
+      }
+      catch(...){
+        std::cerr << "Couldn't convert " << candidate_value << " to int" << std::endl;
+        return false;
+      }
+      break;
+    case DOUBLE:
+        double temp;
+        if(!StrToDouble(candidate_value,temp)){
+        std::cerr << "Couldn't convert " << candidate_value << " to double" << std::endl;
+        return false;
+      }
+      break;
+    case STRING:
+      break;
+    default:
+      std::cerr << "Invalid type" << std::endl;
+      return false;
+  }
+  parameters[name] = std::make_tuple(candidate_value,t);
+  return true;
+}
+
+bool Parameters::add_parameter(std::string name, std::string candidate_value, Type t){
+// add key to parameter after type checking
+  if(parameters.count(name)!=0){
+    std::cerr << name << " already exists in parameter list" << std::endl;
+    return false;
+  }
+    
   switch(t){
     case INT:
       try{
@@ -44,11 +87,11 @@ bool Parameters::add_parameter(std::string name,std::string candidate_value, Typ
 
 TEST_CASE("Testing add_parameter in Parameters class"){
   Parameters para = Parameters();
-  CHECK(para.add_parameter("one","5",INT)== true);
+  CHECK(para.add_parameter("one",5,INT)== true);
   // checking if key already exists
-  CHECK(para.add_parameter("one","5.0",DOUBLE)== false);
+  CHECK(para.add_parameter("one",5.0,DOUBLE)== false);
   CHECK(para.add_parameter("two","not_an_int",INT) == false);
-  CHECK(para.add_parameter("three","1353456.2353", DOUBLE) == true);
+  CHECK(para.add_parameter("three",1353456.2353, DOUBLE) == true);
   CHECK(para.add_parameter("four", "not_a_double", DOUBLE) == false);
   CHECK(para.add_parameter("five","sample", STRING) == true);
 }
@@ -115,8 +158,8 @@ bool Parameters::match_type<std::string>(std::tuple<std::string, Type> val_tup, 
 
 TEST_CASE("Testing get_parameter in Parameters class"){
   Parameters para = Parameters();
-  para.add_parameter("first","5",INT);
-  para.add_parameter("second","5.9",DOUBLE);
+  para.add_parameter("first",5,INT);
+  para.add_parameter("second",5.9,DOUBLE);
   para.add_parameter("third","sample",STRING);
   int temp_int;
   double temp_double;
