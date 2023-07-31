@@ -16,7 +16,6 @@ class Bunch{
   private:
     uint64_t bunch_id;
     static uint64_t bunch_id_generator;
-    std::vector<Particle> sim_parts; // array of particles assigned to the bunch
     double p_inf = std::numeric_limits<double>::infinity();
     double n_inf = -1.0*p_inf;
     double min_tau = p_inf;
@@ -27,6 +26,8 @@ class Bunch{
     double max_x_trans = n_inf;
     double min_px_trans = p_inf;
     double max_px_trans = n_inf;
+  public:
+    std::vector<Particle> sim_parts; // array of particles assigned to the bunch
 // Public functions
   public:
     Bunch(uint64_t nparticles, std::unordered_map<Coords, std::unique_ptr<ProbDist>>& function_map, Parameters GlobalParas= Parameters());
@@ -38,6 +39,8 @@ class Bunch{
     void print_particles() const ;
     double get_min_tau();
     double get_max_tau();
+    void HamiltonianUpdate(Parameters GlobalParas);
+    void FPUpdate(Parameters GlobalParas);
     void write_data(std::string fname);
 // Private functions
   private:

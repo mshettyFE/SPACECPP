@@ -142,6 +142,7 @@ int main(int argc, char** argv){
     
     bunches[0].write_data("TestBunch.csv");
     TimeEvolution t  = TimeEvolution(cavities, bunches, GlobalParameters);
+    t.run_simulation(1,1,0,1);
 /*
 // Defining useful combinations of input parameters
 // Angular frequency around the ring

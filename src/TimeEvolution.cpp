@@ -7,6 +7,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <chrono>
+#include <random>
 
 #ifdef MPI_FOUND
 #include <mpi.h>
@@ -26,6 +28,9 @@ TimeEvolution::TimeEvolution(std::vector<std::unique_ptr<Cavity>>& cavities, std
       throw std::runtime_error("Couldn't read Uloss or vrf");
     }
     relative_loss = loss_per_turn/Vrf;
+    auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    generator.seed((unsigned long)seed);
+
 }
 
 double TimeEvolution::Voltage(double tau, int bunch_index){
@@ -118,6 +123,124 @@ void TimeEvolution::PlotVoltage(std::string fname, int bunch_index, double lower
   }
   file.close();
 }
+
+void TimeEvolution::run_simulation(bool HamiltonianFlag, bool FPFlag, bool WakefieldFlag, bool verbose){
+    std::cout << "Starting Simulation" << std::endl;
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+ if( !(HamiltonianFlag || FPFlag || WakefieldFlag )){
+    std::cout << "No update made" << std::endl;
+    return;
+  }
+  int nturns;
+  bool check  = GlobParas.get_parameter("nturns",nturns);
+  if(!check){
+    throw std::runtime_error("Invalid number of turns when attempting to run simulation");
+  }
+  if(nturns==0){
+    throw std::runtime_error("Invalid number of turns when attempting to run simulation");  
+  }
+  for(int i=0; i<nturns; ++i){
+    auto t1 = high_resolution_clock::now();
+    update(i,HamiltonianFlag,FPFlag,WakefieldFlag);
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    if(verbose){
+      std::cout << i << '\t' << nturns << '\t' << ms_double.count() <<  std::endl;    
+    }
+  }
+}
+
+
+void TimeEvolution::update(int turn_number, bool HamiltonianFlag,bool FPFlag, bool WakefieldFlag){
+  if( !(HamiltonianFlag || FPFlag || WakefieldFlag )){
+    std::cout << "No update made" << std::endl;
+    return;
+  }
+  for(int i=0; i< Bunches.size(); ++i){
+    if(HamiltonianFlag){
+      HamiltonianUpdate(i);
+    }
+    if(FPFlag){
+      FPUpdate(i);
+    }
+  }
+  if(WakefieldFlag){
+    std::cout << "Wakefield calculation unimplemented" << std::endl;
+    return;
+  }
+  return ;
+}
+
+void TimeEvolution::HamiltonianUpdate(int bunch_index){
+// Taken from  the following paper:
+/*
+G. Bassi, A. Blednykh and V. Smaluk, Phys. Rev. Accel. Beams
+19, 024401, 2016.
+*/
+  double Vrf, E0, T0, eta, nu_x, xi_x;
+  bool check =  GlobParas.get_parameter("E0",E0) &&
+      GlobParas.get_parameter("T0",T0) &&
+      GlobParas.get_parameter("eta",eta) &&
+      GlobParas.get_parameter("x_betatron_tune",nu_x) &&
+      GlobParas.get_parameter("x_lin_chromaticity",xi_x);
+  if(!check){
+    throw std::runtime_error("Insufficient global parameters for Hamiltonian update");
+  }
+  Bunch B = Bunches[bunch_index];
+  uint64_t num_particles = B.sim_parts.size();
+  double delta_old, tau_old, x_trans_old, px_trans_old;
+  double delta_new, tau_new, x_trans_new, px_trans_new;
+  double x_trans_phase;
+  for(uint64_t i=0; i< num_particles; ++i){
+// Extracting current coordinates of particle
+    delta_old = B.sim_parts[i].getDelta();
+    tau_old = B.sim_parts[i].getTau();
+    x_trans_old = B.sim_parts[i].getXTrans();
+    px_trans_old = B.sim_parts[i].getPXTrans();
+// Calculating new coordinates as per Eq 11-14 in paper
+    delta_new = delta_old+Voltage(tau_old, bunch_index)/E0;
+    tau_new = tau_old-T0*eta*delta_new;
+    x_trans_phase = 2*pi*(nu_x+xi_x*delta_old);
+    x_trans_new = x_trans_old*cos(x_trans_phase)+px_trans_old*sin(x_trans_phase);
+    px_trans_new = -x_trans_old*sin(x_trans_phase)+px_trans_old*cos(x_trans_phase);
+// updating particle coordinate
+    Bunches[bunch_index].sim_parts[i].update(delta_new, tau_new, x_trans_new, px_trans_new);
+  }
+}
+void TimeEvolution::FPUpdate(int bunch_index){
+  std::normal_distribution<double> QuantumFluctuations{0.0,2.0};
+  double T0, alpha_x, alpha_tau, D_x, D_tau, roll_x, roll_tau;
+  bool check =  GlobParas.get_parameter("alpha_tau",alpha_tau) &&
+      GlobParas.get_parameter("T0",T0) &&
+      GlobParas.get_parameter("alpha_x",alpha_x) &&
+      GlobParas.get_parameter("alpha_tau",alpha_tau) &&
+      GlobParas.get_parameter("Dis_x",D_x) &&
+      GlobParas.get_parameter("Dis_tau",D_tau);
+  if(!check){
+    throw std::runtime_error("Insufficient global parameters for FP update");
+  }
+  Bunch B = Bunches[bunch_index];
+  uint64_t num_particles = B.sim_parts.size();
+  double delta_old, px_trans_old;
+  double delta_new, px_trans_new;
+  for(uint64_t i=0; i< num_particles; ++i){
+    // roll a gaussian of sigma 2 to simulate quantum fluctuations
+    roll_x = QuantumFluctuations(generator);
+    roll_tau = QuantumFluctuations(generator);
+    // get old coordinates
+    delta_old = B.sim_parts[i].getDelta();
+    px_trans_old  = B.sim_parts[i].getPXTrans();
+    // calcualate new coordinates
+    delta_new = delta_old-alpha_tau*T0*delta_old+sqrt(D_tau*T0)*roll_tau;
+    px_trans_new = px_trans_old-alpha_x*T0*px_trans_old+sqrt(D_x*T0)*roll_x;
+// Update coordinates
+    Bunches[bunch_index].sim_parts[i].setDelta(delta_new); 
+    Bunches[bunch_index].sim_parts[i].setPXTrans(px_trans_new); 
+  }
+}
+
 
 /*
 void TimeEvolution::update(){
