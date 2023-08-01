@@ -1,6 +1,6 @@
 #!/bin/bash
 # create FFTW library
-tar -xzf fftw-3.3.10.tar.gz
+tar -xzf fftw.tar.gz
 mkdir fftw
 cd fftw
 DST=$PWD
