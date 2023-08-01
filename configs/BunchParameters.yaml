@@ -1,5 +1,5 @@
-npop: 2000                   #Number of particles 
-nbunches: 100                      #Number of bunches
+npop: 2000                          #Number of particles 
+nbunches: 1320                      #Number of bunches
 gap: 0
 # Arrival time in picoseconds (ps)
 tau:

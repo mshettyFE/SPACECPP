@@ -33,7 +33,7 @@ cavities:
     type: "active"
     r: 1 # relative voltage (1 means same as mains voltage)
     order: 1
-    Phase: 17 # In degrees. Modify as needed to match energy loss per turn (U/(V_rf)where U is in units of eV)
+    Phase: 10.806922874860343 # In degrees. Modify as needed to match energy loss per turn (U/(V_rf)where U is in units of eV)
     Load: 0
     Beta: 0
    # For a passive cavity, we swap relative voltage for shunt impedance

@@ -1,4 +1,4 @@
-nturns: 50000   # Number of turns for the simulation
+nturns: 10000   # Number of turns for the simulation
 kon: 100        # Number of turns radiation damping is artifically scaled
 frad: 1d0       # scaling factor of radiation damping for first kon turns
 nturnon: 200    # Turn on beam loading compensation after nturnon turns
