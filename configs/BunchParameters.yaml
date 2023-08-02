@@ -15,15 +15,29 @@ delta:
   sigma: 1
   lower: -5
   upper: 5
-# transverse position
+# transverse x position
 x_trans:
   prob_dist: Gauss
   mu: 0
   sigma: 1
   lower: -5
   upper: 5
-# transverse momentum
+# transverse x momentum
 px_trans:
+  prob_dist: Gauss
+  mu: 0
+  sigma: 1
+  lower: -5
+  upper: 5
+# transverse y position
+y_trans:
+  prob_dist: Gauss
+  mu: 0
+  sigma: 1
+  lower: -5
+  upper: 5
+# transverse  y momentum
+py_trans:
   prob_dist: Gauss
   mu: 0
   sigma: 1

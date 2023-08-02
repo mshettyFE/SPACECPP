@@ -26,6 +26,10 @@ class Bunch{
     double max_x_trans = n_inf;
     double min_px_trans = p_inf;
     double max_px_trans = n_inf;
+    double min_y_trans = p_inf;
+    double max_y_trans = n_inf;
+    double min_py_trans = p_inf;
+    double max_py_trans = n_inf;
   public:
     std::vector<Particle> sim_parts; // array of particles assigned to the bunch
 // Public functions
@@ -35,6 +39,8 @@ class Bunch{
     double MomentGeneratorDelta(int moment_number) const ;
     double MomentGeneratorXTrans(int moment_number) const ;
     double MomentGeneratorPXTrans(int moment_number) const ;
+    double MomentGeneratorYTrans(int moment_number) const ;
+    double MomentGeneratorPYTrans(int moment_number) const ;
     void print() const ;
     void print_particles() const ;
     double get_min_tau();

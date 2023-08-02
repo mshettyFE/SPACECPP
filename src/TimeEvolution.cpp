@@ -179,77 +179,82 @@ void TimeEvolution::HamiltonianUpdate(int bunch_index){
 G. Bassi, A. Blednykh and V. Smaluk, Phys. Rev. Accel. Beams
 19, 024401, 2016.
 */
-  double Vrf, E0, T0, eta, nu_x, xi_x;
+  double Vrf, E0, T0, eta, nu_x, xi_x, nu_y, xi_y;
   bool check =  GlobParas.get_parameter("E0",E0) &&
       GlobParas.get_parameter("T0",T0) &&
       GlobParas.get_parameter("eta",eta) &&
       GlobParas.get_parameter("x_betatron_tune",nu_x) &&
-      GlobParas.get_parameter("x_lin_chromaticity",xi_x);
+      GlobParas.get_parameter("x_lin_chromaticity",xi_x) &&
+      GlobParas.get_parameter("y_betatron_tune",nu_y) &&
+      GlobParas.get_parameter("y_lin_chromaticity",xi_y);
   if(!check){
     throw std::runtime_error("Insufficient global parameters for Hamiltonian update");
   }
   Bunch B = Bunches[bunch_index];
   uint64_t num_particles = B.sim_parts.size();
-  double delta_old, tau_old, x_trans_old, px_trans_old;
-  double delta_new, tau_new, x_trans_new, px_trans_new;
-  double x_trans_phase;
+  double delta_old, tau_old, x_trans_old, px_trans_old, y_trans_old, py_trans_old;
+  double delta_new, tau_new, x_trans_new, px_trans_new, y_trans_new, py_trans_new;
+  double x_trans_phase, y_trans_phase;
   for(uint64_t i=0; i< num_particles; ++i){
 // Extracting current coordinates of particle
     delta_old = B.sim_parts[i].getDelta();
     tau_old = B.sim_parts[i].getTau();
     x_trans_old = B.sim_parts[i].getXTrans();
     px_trans_old = B.sim_parts[i].getPXTrans();
+    y_trans_old = B.sim_parts[i].getYTrans();
+    py_trans_old = B.sim_parts[i].getPYTrans();
 // Calculating new coordinates as per Eq 11-14 in paper
     delta_new = delta_old+Voltage(tau_old, bunch_index)/E0;
     tau_new = tau_old-T0*eta*delta_new;
+// x coord
     x_trans_phase = 2*pi*(nu_x+xi_x*delta_old);
     x_trans_new = x_trans_old*cos(x_trans_phase)+px_trans_old*sin(x_trans_phase);
     px_trans_new = -x_trans_old*sin(x_trans_phase)+px_trans_old*cos(x_trans_phase);
+// y coord
+    y_trans_phase = 2*pi*(nu_y+xi_y*delta_old);
+    y_trans_new = y_trans_old*cos(y_trans_phase)+py_trans_old*sin(y_trans_phase);
+    py_trans_new = -y_trans_old*sin(y_trans_phase)+py_trans_old*cos(y_trans_phase);
 // updating particle coordinate
-    Bunches[bunch_index].sim_parts[i].update(delta_new, tau_new, x_trans_new, px_trans_new);
+    Bunches[bunch_index].sim_parts[i].update(delta_new, tau_new, x_trans_new, px_trans_new, y_trans_new, py_trans_new);
   }
 }
 void TimeEvolution::FPUpdate(int bunch_index){
   std::normal_distribution<double> QuantumFluctuations{0.0,2.0};
-  double T0, alpha_x, alpha_tau, D_x, D_tau, roll_x, roll_tau;
+  double T0;
+  double alpha_x, alpha_y,alpha_tau;
+  double D_x, D_y, D_tau;
+  double roll_x, roll_y, roll_tau;
   bool check =  GlobParas.get_parameter("alpha_tau",alpha_tau) &&
       GlobParas.get_parameter("T0",T0) &&
       GlobParas.get_parameter("alpha_x",alpha_x) &&
+      GlobParas.get_parameter("alpha_y",alpha_y) &&
       GlobParas.get_parameter("alpha_tau",alpha_tau) &&
       GlobParas.get_parameter("Dis_x",D_x) &&
+      GlobParas.get_parameter("Dis_y",D_y) &&
       GlobParas.get_parameter("Dis_tau",D_tau);
   if(!check){
     throw std::runtime_error("Insufficient global parameters for FP update");
   }
   Bunch B = Bunches[bunch_index];
   uint64_t num_particles = B.sim_parts.size();
-  double delta_old, px_trans_old;
-  double delta_new, px_trans_new;
+  double delta_old, px_trans_old, py_trans_old;
+  double delta_new, px_trans_new, py_trans_new;
   for(uint64_t i=0; i< num_particles; ++i){
     // roll a gaussian of sigma 2 to simulate quantum fluctuations
     roll_x = QuantumFluctuations(generator);
+    roll_y = QuantumFluctuations(generator);
     roll_tau = QuantumFluctuations(generator);
     // get old coordinates
     delta_old = B.sim_parts[i].getDelta();
     px_trans_old  = B.sim_parts[i].getPXTrans();
+    py_trans_old  = B.sim_parts[i].getPYTrans();
     // calcualate new coordinates
     delta_new = delta_old-alpha_tau*T0*delta_old+sqrt(D_tau*T0)*roll_tau;
     px_trans_new = px_trans_old-alpha_x*T0*px_trans_old+sqrt(D_x*T0)*roll_x;
+    py_trans_new = py_trans_old-alpha_y*T0*py_trans_old+sqrt(D_y*T0)*roll_y;
 // Update coordinates
     Bunches[bunch_index].sim_parts[i].setDelta(delta_new); 
     Bunches[bunch_index].sim_parts[i].setPXTrans(px_trans_new); 
+    Bunches[bunch_index].sim_parts[i].setPYTrans(py_trans_new); 
   }
 }
-
-
-/*
-void TimeEvolution::update(){
-  for(int i=0; i< Bunches.size(); ++i){
-    Hamiltonia
-  }
-}
-
-void TimeEvolution::HamiltonianUpdate(Bunch& bunch){
-  
-}
-*/

@@ -7,3 +7,5 @@ alpha_tau: 1      # Radiation damping constant in tau (1/s)
 Dis_tau: 1        # Dispersion constant in tau  
 alpha_x: 1        # Radiation damping constant in x (1/s)
 Dis_x: 1         # Dispersion constant in x 
+alpha_y: 1        # Radiation damping constant in x (1/s)
+Dis_y: 1         # Dispersion constant in x 

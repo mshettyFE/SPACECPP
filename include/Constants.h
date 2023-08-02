@@ -55,7 +55,7 @@
 // Possible checks you can perform on a string to check if it can be converted to a double
   enum ValidityCheckingFlags {IS_VALID, MIN_EXCLUSIVE, MIN_INCLUSIVE, MAX_EXCLUSIVE, MAX_INCLUSIVE, MIN_EXCLUSIVE_MAX_EXCLUSIVE, MIN_INCLUSIVE_MAX_INCLUSIVE, MIN_EXCLUSIVE_MAX_INCLUSIVE, MIN_INCLUSIVE_MAX_EXCLUSIVE};
 // Coordinates in phase space
-  enum Coords {TAU, DELTA, X_TRANS, PX_TRANS};
+  enum Coords {TAU, DELTA, X_TRANS, PX_TRANS, Y_TRANS,PY_TRANS};
 // Allowed types that can be stored in Parameters object
   enum Type {INT, DOUBLE, STRING};
 // Possible cavity types

@@ -8,5 +8,7 @@ sig_d: 7.88d-4            # Momentum spread of detector
 alpha_C: 5.951d-5         # momentum compaction
 x_betatron_tune: 1.0      # betatron tune of transverse x direction
 x_lin_chromaticity: 1.0   # linear chromaticity in x direction
+y_betatron_tune: 1.0      # betatron tune of transverse y direction
+y_lin_chromaticity: 1.0   # linear chromaticity in y direction
 Uloss: 6.74d5             # Energy loss per turn (eV)
 rjs: 1.81d0               # longitudinal rad partition number

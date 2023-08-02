@@ -9,31 +9,39 @@ class Particle{
   private:
     uint64_t part_id;
     static uint64_t part_id_generator;
-    // momentum deviation from reference particle (3 Gev for NSLS-II)
-    double delta;
     // Arrival time of particle w.r.t. reference particle (tau=0 for a reference particle)
     double tau;
+    // momentum deviation from reference particle (3 Gev for NSLS-II)
+    double delta;
     // Transverse x momentum
     double x_trans;
     // Transverse p momentum
     double px_trans;
+    // Transverse y momentum
+    double y_trans;
+    // Transverse py momentum
+    double py_trans;
   public:
     // Constructors
-    Particle(double del,double t,double x,double px);
+    Particle(double tau,double delta,double x,double px, double y, double py);
     Particle();
     // update coorinates of particle
-    void update(double del,double t,double x,double px);
+    void update(double t,double del,double x,double px, double y, double py);
     // set individual coordinate of particle
-    void setDelta(double del);
     void setTau(double t);
+    void setDelta(double del);
     void setXTrans(double x);
     void setPXTrans(double px);
+    void setYTrans(double y);
+    void setPYTrans(double py);
     // Extract coordinates from particle
-    double getDelta();
     double getTau();
+    double getDelta();
     double getXTrans();
     double getPXTrans();
-    std::tuple<double,double,double,double> getCoordinates();
+    double getYTrans();
+    double getPYTrans();
+    std::tuple<double,double,double,double,double,double> getCoordinates();
     // printing
     void print();
 };

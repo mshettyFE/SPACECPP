@@ -129,10 +129,14 @@ bool ReadLatticeParameters(std::string fname, Parameters& Para){
     ValidateYAMLWrapper(Para, config, "Uloss", DOUBLE, MIN_INCLUSIVE, 0) &&
 // rjs must be greater than 0
     ValidateYAMLWrapper(Para, config, "rjs", DOUBLE, MIN_EXCLUSIVE, 0) &&
-// betatron tune must be greater than 0
+// betatron tune must be greater than 0 (I'm guessing here)
     ValidateYAMLWrapper(Para, config, "x_betatron_tune", DOUBLE, MIN_EXCLUSIVE, 0) &&
 // chromaticity must be valid
-    ValidateYAMLWrapper(Para, config, "x_lin_chromaticity", DOUBLE, IS_VALID);
+    ValidateYAMLWrapper(Para, config, "x_lin_chromaticity", DOUBLE, IS_VALID) && 
+// betatron tune must be greater than 0 (I'm guessing here)
+    ValidateYAMLWrapper(Para, config, "y_betatron_tune", DOUBLE, MIN_EXCLUSIVE, 0) &&
+// chromaticity must be valid
+    ValidateYAMLWrapper(Para, config, "y_lin_chromaticity", DOUBLE, IS_VALID);
   double f0;
   if(!Para.get_parameter("f0",f0)){
     return false;
@@ -180,10 +184,14 @@ bool ReadTimeEvolutionParameters(std::string fname, Parameters& Para){
     ValidateYAMLWrapper(Para, config, "alpha_tau", DOUBLE, MIN_INCLUSIVE, 0) &&
 // Dist_tau must be at least 0
     ValidateYAMLWrapper(Para, config, "Dis_tau", DOUBLE, MIN_INCLUSIVE, 0) &&
-// alpha_tau must be at least 0
+// alpha_x must be at least 0
     ValidateYAMLWrapper(Para, config, "alpha_x", DOUBLE, MIN_INCLUSIVE, 0) &&
-// Dist_tau must be at least 0
-    ValidateYAMLWrapper(Para, config, "Dis_x", DOUBLE, MIN_INCLUSIVE, 0);
+// Dist_x must be at least 0
+    ValidateYAMLWrapper(Para, config, "Dis_x", DOUBLE, MIN_INCLUSIVE, 0) &&
+// alpha_y must be at least 0
+    ValidateYAMLWrapper(Para, config, "alpha_y", DOUBLE, MIN_INCLUSIVE, 0) &&
+// Dist_y must be at least 0
+    ValidateYAMLWrapper(Para, config, "Dis_y", DOUBLE, MIN_INCLUSIVE, 0);
   return output;
 }
 
@@ -370,12 +378,14 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
   }
   int gap;
   TempPara.get_parameter("gap", gap);
-  YAML::Node tau_node, delta_node, x_trans_node, px_trans_node;
+  YAML::Node tau_node, delta_node, x_trans_node, px_trans_node , y_trans_node, py_trans_node;
   tau_node = config["tau"];
   delta_node = config["delta"];
   x_trans_node = config["x_trans"];
   px_trans_node = config["px_trans"];
-  if(!(tau_node && delta_node && x_trans_node && px_trans_node)){
+  y_trans_node = config["y_trans"];
+  py_trans_node = config["py_trans"];
+  if(!(tau_node && delta_node && x_trans_node && px_trans_node && y_trans_node && py_trans_node)){
     std::cerr << "Couldn't locate all coordinates in " << fname << std::endl;
     return false;
   }
@@ -386,6 +396,8 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
   bool valid_delta = ValidateCoordinateWrapper(DELTA, delta_node, function_map);
   bool valid_x_trans = ValidateCoordinateWrapper(X_TRANS, x_trans_node, function_map);
   bool valid_px_trans = ValidateCoordinateWrapper(PX_TRANS, px_trans_node, function_map);
+  bool valid_y_trans = ValidateCoordinateWrapper(Y_TRANS, y_trans_node, function_map);
+  bool valid_py_trans = ValidateCoordinateWrapper(PY_TRANS, py_trans_node, function_map);
 
   if(!valid_tau){
     std::cerr << "Couldn't parse coordinate tau in " << fname <<  std::endl;
@@ -401,6 +413,14 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
   }
   if(!valid_px_trans){
     std::cerr << "Couldn't parse coordinate px_trans in " << fname <<  std::endl;
+    return false;
+  }
+  if(!valid_y_trans){
+    std::cerr << "Couldn't parse coordinate y_trans in " << fname <<  std::endl;
+    return false;
+  }
+  if(!valid_py_trans){
+    std::cerr << "Couldn't parse coordinate py_trans in " << fname <<  std::endl;
     return false;
   }
         

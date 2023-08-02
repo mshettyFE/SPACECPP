@@ -27,7 +27,7 @@ Bunch::Bunch(uint64_t nparticles, std::unordered_map<Coords, std::unique_ptr<Pro
     bunch_id = ++bunch_id_generator;
 // for each particle, perform basic accept_reject method to generate arbitrary distribution along a coordinate according to some derived class of ProbDist.h
     for(uint64_t i=0; i<nparticles; ++i){
-      double tau_roll, delta_roll, x_trans_roll, px_trans_roll;
+      double tau_roll, delta_roll, x_trans_roll, px_trans_roll, y_trans_roll, py_trans_roll;
       tau_roll =  accept_reject(function_map[TAU]);
       assign_min_max(tau_roll, min_tau,max_tau);
         
@@ -39,7 +39,14 @@ Bunch::Bunch(uint64_t nparticles, std::unordered_map<Coords, std::unique_ptr<Pro
       
       px_trans_roll =  accept_reject(function_map[PX_TRANS]);
       assign_min_max(px_trans_roll, min_px_trans,max_px_trans);
-      sim_parts.push_back(Particle(tau_roll,delta_roll,x_trans_roll, px_trans_roll ));
+
+      y_trans_roll =  accept_reject(function_map[Y_TRANS]);
+      assign_min_max(y_trans_roll, min_y_trans,max_y_trans);
+      
+      py_trans_roll =  accept_reject(function_map[PY_TRANS]);
+      assign_min_max(py_trans_roll, min_py_trans,max_py_trans);
+
+      sim_parts.push_back(Particle(tau_roll,delta_roll,x_trans_roll, px_trans_roll, y_trans_roll, py_trans_roll ));
     }
 }
 
@@ -53,19 +60,21 @@ void Bunch::print_particles() const {
 
 void Bunch::print() const {
     std::cout << bunch_id << "\n";
-    for(auto p : sim_parts){
-      std::cout << '\t';
-      p.print();
-    }
+    std::cout << "Tau\t" << min_tau << '\t' << max_tau << std::endl;
+    std::cout << "Delta\t" << min_delta << '\t' << max_delta << std::endl;
+    std::cout << "XTrans\t" << min_x_trans << '\t' << max_x_trans << std::endl;
+    std::cout << "PXTrans\t" << min_px_trans << '\t' << max_px_trans << std::endl;
+    std::cout << "YTrans\t" << min_y_trans << '\t' << max_y_trans << std::endl;
+    std::cout << "PYTrans\t" << min_py_trans << '\t' << max_py_trans << std::endl;
 }
 
 void Bunch::write_data(std::string fname){
 // write phase space coordinate data to basic csv file
   std::ofstream myfile;
   myfile.open (fname);
-  myfile << "Tau,Delta,X,PX" << std::endl;
+  myfile << "Tau,Delta,X,PX,Y,Py" << std::endl;
   for(auto p : sim_parts){
-    myfile << p.getTau() <<',' << p.getDelta() << ',' << p.getXTrans() << ',' << p.getPXTrans() << std::endl;
+    myfile << p.getTau() <<',' << p.getDelta() << ',' << p.getXTrans() << ',' << p.getPXTrans() << ',' << p.getYTrans() << ',' << p.getPYTrans() <<  std::endl;
   }
   myfile.close();
 }
@@ -100,6 +109,12 @@ double Bunch::MomentGeneratorDiscrete(Coords coordinate, int moment_number) cons
         case PX_TRANS:
             tally += p.getPXTrans();
             break;
+        case Y_TRANS:
+            tally += p.getYTrans();
+            break;
+        case PY_TRANS:
+            tally += p.getPYTrans();
+            break;
         default:
             throw std::runtime_error("Invalid coordinate for moment generation");
             break;
@@ -133,6 +148,12 @@ double Bunch::MomentGeneratorDiscrete(Coords coordinate, int moment_number) cons
         case PX_TRANS:
             dif = p.getPXTrans()-mean;
             break;
+        case Y_TRANS:
+            dif = p.getYTrans()-mean;
+            break;
+        case PY_TRANS:
+            dif = p.getPYTrans()-mean;
+            break;
         default:
             throw std::runtime_error("Invalid coordinate for moment generation");
             break;
@@ -148,16 +169,29 @@ double Bunch::MomentGeneratorTau(int moment_number) const{
   double v  = MomentGeneratorDiscrete(TAU, moment_number);
   return v;
 }
+
 double Bunch::MomentGeneratorDelta(int moment_number) const {
   double v  = MomentGeneratorDiscrete(DELTA, moment_number);
   return v;
 }
+
 double Bunch::MomentGeneratorXTrans(int moment_number) const {
   double v  = MomentGeneratorDiscrete(X_TRANS, moment_number);
   return v;
 }
+
 double Bunch::MomentGeneratorPXTrans(int moment_number) const {
   double v  = MomentGeneratorDiscrete(PX_TRANS, moment_number);
+  return v;
+}
+
+double Bunch::MomentGeneratorYTrans(int moment_number) const {
+  double v  = MomentGeneratorDiscrete(Y_TRANS, moment_number);
+  return v;
+}
+
+double Bunch::MomentGeneratorPYTrans(int moment_number) const {
+  double v  = MomentGeneratorDiscrete(PY_TRANS, moment_number);
   return v;
 }
 
@@ -204,6 +238,26 @@ TEST_CASE("Testing MomentGeneratorDiscrete and wrapper functions...") {
     Gaussian* g4 =  new Gaussian(func_para);
     func_map[PX_TRANS] = std::make_unique<ProbDist>(g4);
 
+    func_para = Parameters();
+    mu  = 10;
+    sigma = 20;
+    func_para.add_parameter("mu",mu,  DOUBLE);
+    func_para.add_parameter("sigma",sigma,  DOUBLE);
+    func_para.add_parameter("lower",mu-5*sigma, DOUBLE);
+    func_para.add_parameter("upper",mu+5*sigma, DOUBLE);
+    Gaussian* g5 =  new Gaussian(func_para);
+    func_map[Y_TRANS] = std::make_unique<ProbDist>(g5);
+    
+    func_para = Parameters();
+    mu = 50.0;
+    sigma = 42.0;
+    func_para.add_parameter("mu",mu,  DOUBLE);
+    func_para.add_parameter("sigma",sigma,  DOUBLE);
+    func_para.add_parameter("lower",mu-5*sigma, DOUBLE);
+    func_para.add_parameter("upper",mu+5*sigma, DOUBLE);
+    Gaussian* g6 =  new Gaussian(func_para);
+    func_map[PY_TRANS] = std::make_unique<ProbDist>(g6);
+
     Bunch Bchs(100000, func_map);
     Bchs.write_data("TestBunch.csv");
     double epsilon = 1E-1;
@@ -241,6 +295,22 @@ TEST_CASE("Testing MomentGeneratorDiscrete and wrapper functions...") {
     CHECK( ( abs(calc-true_val) < epsilon) == true);
     true_val = 75;
     calc = Bchs.MomentGeneratorPXTrans(2);
+    CHECK( ( abs(sqrt(calc)-true_val) < epsilon) == true);
+
+    //Y_TRANS
+    true_val = 10;
+    calc = Bchs.MomentGeneratorYTrans(1);
+    CHECK( ( abs(calc-true_val) < epsilon) == true);
+    true_val = 20;
+    calc = Bchs.MomentGeneratorYTrans(2);
+    CHECK( ( abs(sqrt(calc)-true_val) < epsilon) == true);
+    
+    //PY_TRANS
+    true_val = 50;
+    calc = Bchs.MomentGeneratorPYTrans(1);
+    CHECK( ( abs(calc-true_val) < epsilon) == true);
+    true_val = 42;
+    calc = Bchs.MomentGeneratorPYTrans(2);
     CHECK( ( abs(sqrt(calc)-true_val) < epsilon) == true);
 }
 
