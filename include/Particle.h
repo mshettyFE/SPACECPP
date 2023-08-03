@@ -44,5 +44,11 @@ class Particle{
     std::tuple<double,double,double,double,double,double> getCoordinates();
     // printing
     void print();
+    // serialization. See https://stackoverflow.com/questions/61743418/im-getting-a-strange-error-when-i-try-to-do-serialization-with-cereal-in-c for why implementation is in header file
+    template<class Archive>
+    void serialize(Archive & archive)
+    {
+      archive(part_id, tau, delta, x_trans, px_trans, y_trans, py_trans);
+    }
 };
 #endif

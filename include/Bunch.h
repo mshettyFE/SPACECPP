@@ -10,6 +10,8 @@
 #include <tuple>
 #include <limits>
 
+#include "cereal/types/vector.hpp"
+
 //class to encapsulate a number of particles and define methods on this list of particles
 
 class Bunch{
@@ -48,6 +50,31 @@ class Bunch{
     void HamiltonianUpdate(Parameters GlobalParas);
     void FPUpdate(Parameters GlobalParas);
     void write_data(std::string fname);
+// serialization. see See https://stackoverflow.com/questions/61743418/im-getting-a-strange-error-when-i-try-to-do-serialization-with-cereal-in-c for why implementation is in header file
+    template <class Archive>
+    void save(Archive & archive) const
+    {
+      archive(bunch_id, CEREAL_NVP(sim_parts));
+    }
+    template <class Archive>
+    void load(Archive & archive)
+    {
+      archive(bunch_id, p_inf,
+    n_inf ,
+    min_tau ,
+    max_tau ,
+    min_delta ,
+    max_delta ,
+    min_x_trans ,
+    max_x_trans ,
+    min_px_trans ,
+    max_px_trans ,
+    min_y_trans ,
+    max_y_trans ,
+    min_py_trans ,
+    max_py_trans , CEREAL_NVP(sim_parts));
+    }
+
 // Private functions
   private:
     double MomentGeneratorDiscrete(Coords coordinate, int moment_number) const ;

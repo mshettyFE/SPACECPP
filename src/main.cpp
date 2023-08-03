@@ -139,7 +139,6 @@ int main(int argc, char** argv){
     else{
       std::cout << "Sucessfully Parsed " << BunchParameterName << std::endl;
     }
-    
     bunches[0].write_data("TestBunch.csv");
     TimeEvolution t  = TimeEvolution(cavities, bunches, GlobalParameters);
     t.run_simulation(1,1,0,1);
