@@ -369,14 +369,15 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
   Parameters TempPara = Parameters();
   bool suc_check = 
   ValidateYAMLWrapper(TempPara, config, "npop", INT, MIN_INCLUSIVE, 1) &&
+  ValidateYAMLWrapper(TempPara, config, "nRealPerSim", INT, MIN_INCLUSIVE, 1) &&      
   ValidateYAMLWrapper(TempPara, config, "nbunches", INT, MIN_INCLUSIVE, 1);
   if(!suc_check){
     std::cerr << "Couldn't read either npop or nbunches " << std::endl;
     return false;
   }
-  int nbunches, npop;
+  int nbunches, npop, nRealPerSim;
   TempPara.get_parameter("nbunches", nbunches);
-  TempPara.get_parameter("npop", npop);
+  TempPara.get_parameter("nRealPerSim", nRealPerSim);
   if(!ValidateYAMLWrapper(TempPara, config, "gap", INT, MIN_INCLUSIVE_MAX_EXCLUSIVE, 0, nbunches)){
     std::cerr << "Couldn't parse gap variable in " << fname <<  std::endl;
     return false;
@@ -429,10 +430,12 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
     return false;
   }
   for(int i=0; i< nbunches-gap; ++i){
-    bunches.push_back(Bunch(npop, function_map));
+    bunches.push_back(Bunch(npop,nRealPerSim, function_map));
+    bunches[i].print();
   }
   for(int i=nbunches-gap; i< nbunches; ++i){
-    bunches.push_back(Bunch(0, function_map));
+    bunches.push_back(Bunch(0, nRealPerSim, function_map));
+    bunches[i].print();
   }
 /*
     {

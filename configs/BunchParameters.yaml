@@ -1,4 +1,5 @@
-npop: 2000                          #Number of particles 
+npop: 2000                        #Number of particles 
+nRealPerSim: 1
 nbunches: 1320                      #Number of bunches
 gap: 0
 # Arrival time in picoseconds (ps)

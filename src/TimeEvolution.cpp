@@ -56,18 +56,17 @@ double TimeEvolution::integrate(int bunch_index, double lower, double upper, int
   return sum*delta;
 }
 
-double TimeEvolution::Potential(double tau, int bunch_index, int steps){
+double TimeEvolution::Potential(double min_tau, double max_tau, int bunch_index, int steps){
     if( (bunch_index >= Bunches.size()) ||(bunch_index <0) ){
         throw std::runtime_error("Bunch index out of range");
     }
-    double min_tau = Bunches[bunch_index].get_min_tau();
-    if(tau< min_tau){
+    if(max_tau< min_tau){
       throw std::runtime_error("tau less than lower bound in Potential function call");
     }
     if(steps <=0){
       throw std::runtime_error("Number of steps must be at least 1 in Potential function call");    
     }
-    return integrate(bunch_index, min_tau, tau, steps);
+    return integrate(bunch_index, min_tau, max_tau, steps);
 }
 
 void TimeEvolution::PlotPotential(std::string fname, int bunch_index, double lower_bound, double upper_bound,  int steps, int sub_steps){

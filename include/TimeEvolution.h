@@ -18,7 +18,7 @@ class TimeEvolution{
   public:
     TimeEvolution(std::vector<std::unique_ptr<Cavity>>& cavities, std::vector<Bunch>& bunches, Parameters& GlobalParas);
     double Voltage(double tau, int bunch_index);
-    double Potential(double tau, int bunch_index, int steps);
+    double Potential(double min_tau, double max_tau, int bunch_index, int steps);
     void PlotPotential(std::string fname, int bunch_index, double lower_x, double upper_x, int steps=100, int sub_steps=100);
     void PlotVoltage(std::string fname, int bunch_index, double lower_x, double upper_x,  int steps=100);
     void run_simulation(bool HamiltonianFlag=1, bool FPFlag=0, bool WakefieldFlag=0, bool verbose=0);

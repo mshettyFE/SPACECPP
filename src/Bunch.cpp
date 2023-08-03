@@ -20,38 +20,27 @@
 
 #include "doctest.h"
 
-Bunch::Bunch(uint64_t nparticles, std::unordered_map<Coords, std::unique_ptr<ProbDist>>& function_map, Parameters GlobalParas){
+Bunch::Bunch(uint64_t nparticles, int nRealParticlesPerSim, std::unordered_map<Coords, std::unique_ptr<ProbDist>>& function_map, Parameters GlobalParas){
     if(nparticles <0){
       throw std::runtime_error("Bunch instantiated with fewer than 0. Need at least 0 (0 corresponds to empty rf bucket");
     }
+    nRealPerSim = nRealParticlesPerSim;
     bunch_id = ++bunch_id_generator;
 // for each particle, perform basic accept_reject method to generate arbitrary distribution along a coordinate according to some derived class of ProbDist.h
     for(uint64_t i=0; i<nparticles; ++i){
       double tau_roll, delta_roll, x_trans_roll, px_trans_roll, y_trans_roll, py_trans_roll;
       tau_roll =  accept_reject(function_map[TAU]);
-      assign_min_max(tau_roll, min_tau,max_tau);
-        
       delta_roll =  accept_reject(function_map[DELTA]);
-      assign_min_max(delta_roll, min_delta,max_delta);
-
       x_trans_roll =  accept_reject(function_map[X_TRANS]);
-      assign_min_max(x_trans_roll, min_x_trans,max_x_trans);
-      
       px_trans_roll =  accept_reject(function_map[PX_TRANS]);
-      assign_min_max(px_trans_roll, min_px_trans,max_px_trans);
-
       y_trans_roll =  accept_reject(function_map[Y_TRANS]);
-      assign_min_max(y_trans_roll, min_y_trans,max_y_trans);
-      
       py_trans_roll =  accept_reject(function_map[PY_TRANS]);
-      assign_min_max(py_trans_roll, min_py_trans,max_py_trans);
 
       sim_parts.push_back(Particle(tau_roll,delta_roll,x_trans_roll, px_trans_roll, y_trans_roll, py_trans_roll ));
     }
 }
 
 void Bunch::print_particles() const {
-    std::cout << bunch_id << "\n";
     for(auto p : sim_parts){
       std::cout << '\t';
       p.print();
@@ -59,13 +48,7 @@ void Bunch::print_particles() const {
 }
 
 void Bunch::print() const {
-    std::cout << bunch_id << "\n";
-    std::cout << "Tau\t" << min_tau << '\t' << max_tau << std::endl;
-    std::cout << "Delta\t" << min_delta << '\t' << max_delta << std::endl;
-    std::cout << "XTrans\t" << min_x_trans << '\t' << max_x_trans << std::endl;
-    std::cout << "PXTrans\t" << min_px_trans << '\t' << max_px_trans << std::endl;
-    std::cout << "YTrans\t" << min_y_trans << '\t' << max_y_trans << std::endl;
-    std::cout << "PYTrans\t" << min_py_trans << '\t' << max_py_trans << std::endl;
+    std::cout << bunch_id << '\t'  << nRealPerSim << "\n";
 }
 
 void Bunch::write_data(std::string fname){
@@ -258,7 +241,7 @@ TEST_CASE("Testing MomentGeneratorDiscrete and wrapper functions...") {
     Gaussian* g6 =  new Gaussian(func_para);
     func_map[PY_TRANS] = std::make_unique<ProbDist>(g6);
 
-    Bunch Bchs(100000, func_map);
+    Bunch Bchs(100000,1, func_map);
     Bchs.write_data("TestBunch.csv");
     double epsilon = 1E-1;
     double true_val, calc;
@@ -336,23 +319,6 @@ double Bunch::accept_reject(std::unique_ptr<ProbDist>& initial_dist, Parameters 
   }
   throw std::runtime_error("Exceeded max tries to draw from distribution");
   return 0.0;
-}
-
-void Bunch::assign_min_max(double candidate, double& min, double& max){
-  if(candidate < min){
-    min = candidate;
-  }
-  if(candidate > max){
-    max = candidate;
-  }
-}
-
-double Bunch::get_min_tau(){
-  return min_tau;
-}
-
-double Bunch::get_max_tau(){
-  return max_tau;
 }
 
 uint64_t Bunch::bunch_id_generator = 0;
