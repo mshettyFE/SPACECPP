@@ -24,6 +24,9 @@ Bunch::Bunch(uint64_t nparticles, int nRealParticlesPerSim, std::unordered_map<C
     if(nparticles <0){
       throw std::runtime_error("Bunch instantiated with fewer than 0. Need at least 0 (0 corresponds to empty rf bucket");
     }
+    if(nRealParticlesPerSim <=0){
+      throw std::runtime_error("Bunch instantiated with fewer than 0. Need at least 0 (0 corresponds to empty rf bucket");
+    }
     nRealPerSim = nRealParticlesPerSim;
     bunch_id = ++bunch_id_generator;
 // for each particle, perform basic accept_reject method to generate arbitrary distribution along a coordinate according to some derived class of ProbDist.h
@@ -35,7 +38,6 @@ Bunch::Bunch(uint64_t nparticles, int nRealParticlesPerSim, std::unordered_map<C
       px_trans_roll =  accept_reject(function_map[PX_TRANS]);
       y_trans_roll =  accept_reject(function_map[Y_TRANS]);
       py_trans_roll =  accept_reject(function_map[PY_TRANS]);
-
       sim_parts.push_back(Particle(tau_roll,delta_roll,x_trans_roll, px_trans_roll, y_trans_roll, py_trans_roll ));
     }
 }

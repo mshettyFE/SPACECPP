@@ -376,6 +376,7 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
     return false;
   }
   int nbunches, npop, nRealPerSim;
+  TempPara.get_parameter("npop", npop);
   TempPara.get_parameter("nbunches", nbunches);
   TempPara.get_parameter("nRealPerSim", nRealPerSim);
   if(!ValidateYAMLWrapper(TempPara, config, "gap", INT, MIN_INCLUSIVE_MAX_EXCLUSIVE, 0, nbunches)){
@@ -431,11 +432,9 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
   }
   for(int i=0; i< nbunches-gap; ++i){
     bunches.push_back(Bunch(npop,nRealPerSim, function_map));
-    bunches[i].print();
   }
   for(int i=nbunches-gap; i< nbunches; ++i){
     bunches.push_back(Bunch(0, nRealPerSim, function_map));
-    bunches[i].print();
   }
 /*
     {

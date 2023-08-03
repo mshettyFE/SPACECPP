@@ -10,6 +10,8 @@
 
 #include "fftw3.h"
 
+#include "tclap/CmdLine.h"
+
 #include "Constants.h"
 #include "ValidateInput.h"
 #include "FileParser.h"
@@ -23,45 +25,51 @@
 #include "doctest.h"
 
 int main(int argc, char** argv){
-  std::string verbose_str;
-// input yaml file names
   std::string BunchParameterName;
   std::string CavityParameterName;
   std::string LatticeParameterName;
   std::string TimeEvolutionParameterName;
   std::string WakefieldParameterName;
   bool verbose;
-  if(argc < 7){
-    std::cout << argv[0] << '\t' << "BunchParameterYAML CavityParameterYAML LatticeParameterYAML TimeEvolutionYAML WakefieldParameterYAML Verbose(0 or 1)" << std::endl;
-    return -1;
+  try{
+// setting up TCLAP to parse command line
+    TCLAP::CmdLine cmd("SPACECPP", ' ', "1.0");
+// Bunch parameters
+    TCLAP::ValueArg<std::string> BunchFile("b","BunchFileName","Input .yaml file for Bunch Parameters",false,"../configs/BunchParameters.yaml","string");
+    cmd.add( BunchFile );
+// Cavity Parameters
+    TCLAP::ValueArg<std::string> CavityFile("c","CavityFileName","Input .yaml file for Cavity Parameters",false,"../configs/CavityParameters.yaml","string");
+    cmd.add( CavityFile );
+// Lattice Parameters
+    TCLAP::ValueArg<std::string> LatticeFile("l","LatticeFileName","Input .yaml file for Lattice Parameters",false,"../configs/LatticeParameters.yaml","string");
+    cmd.add( LatticeFile );
+// TimeEvolution Parameters
+    TCLAP::ValueArg<std::string> TimeEvoFile("t","TimeEvoFileName","Input .yaml file for Time Evolution Parameters",false,"../configs/TimeEvolution.yaml","string");
+    cmd.add( TimeEvoFile );
+// Wakefield Parameters
+    TCLAP::ValueArg<std::string> WakefieldFile("w","WakefieldFile","Input .yaml file for Wakefield Parameters",false,"../configs/WakefieldParameters.yaml","string");
+    cmd.add( WakefieldFile );
+// Verbose debugging flag
+    TCLAP::SwitchArg VerboseDebugSwitch("d","debug","Print verbose debugging output", cmd, false);
+    // reading in command line arguments
+    cmd.parse(argc, argv);
+    BunchParameterName = BunchFile.getValue();
+    CavityParameterName= CavityFile.getValue();
+    LatticeParameterName= LatticeFile.getValue();
+    TimeEvolutionParameterName= TimeEvoFile.getValue();
+    WakefieldParameterName= WakefieldFile.getValue();
+    verbose = VerboseDebugSwitch.getValue();
   }
-  else{  
-    BunchParameterName = argv[1];
-    CavityParameterName = argv[2];
-    LatticeParameterName = argv[3];
-    TimeEvolutionParameterName = argv[4];
-    WakefieldParameterName = argv[5];
-    std::stringstream stream;
-    verbose_str = argv[6];
-    // convert verbose argument to boolean
-    stream << verbose_str;
-    stream >> verbose;
+  catch(TCLAP::ArgException &e)
+  {
+    std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
   }
-  std::cout << std::setprecision (15);
 // Don't perform unit testing if directive flag is off    
 #ifndef DOCTEST_CONFIG_DISABLE
-  // Redirect cerr to file
-  std::ofstream err_file;
-  std::string err_file_name = "TestingOutput.err";
-  err_file.open(err_file_name);
-  std::streambuf* stream_buffer_err_file = err_file.rdbuf();
-  std::cerr.rdbuf(stream_buffer_err_file);
   doctest::Context ctx;
   ctx.applyCommandLine(argc, argv);
   ctx.setOption("no-breaks", true); 
   int res = ctx.run(); 
-  std::cout << "All errors was written to " << err_file_name << std::endl;
-  err_file.close();
   return 0;
 #endif
 // MPI test
@@ -141,6 +149,11 @@ int main(int argc, char** argv){
     }
     bunches[0].write_data("TestBunch.csv");
     TimeEvolution t  = TimeEvolution(cavities, bunches, GlobalParameters);
-    t.run_simulation(1,1,0,1);
+    if(verbose){
+      t.run_simulation(1,1,0,1);    
+    }
+    else{
+      t.run_simulation(1,1,0,0);    
+    }
   return 0;
 }

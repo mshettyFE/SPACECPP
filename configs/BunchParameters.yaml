@@ -1,4 +1,4 @@
-npop: 2000                        #Number of particles 
+npop: 200                       #Number of particles 
 nRealPerSim: 1
 nbunches: 1320                      #Number of bunches
 gap: 0
