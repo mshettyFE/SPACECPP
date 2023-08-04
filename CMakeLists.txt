@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
-# Require C++14
-set(CMAKE_CXX_STANDARD 14)
+# Require C++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set( CMAKE_CXX_COMPILER "/nsls2/software/ap/mpich/3.3.2-gcc-9.3.0/bin/mpicxx" )
 # Define project name
 project(SPACECPP)
 
@@ -22,15 +21,10 @@ set(SOURCES src/main.cpp
 )
 
 # MPI stuff
-find_package(MPI COMPONENTS CXX)
-if(MPI_FOUND)
+find_package(MPI REQUIRED COMPONENTS CXX)
   include_directories(MPI_INCLUDE_PATH)
   set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
   set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
-endif(MPI_FOUND)
-if(NOT MPI_FOUND)
-  message(STATUS "MPI NOT FOUND. Defaulting to no mpi")
-endif(NOT MPI_FOUND)
 #FFTW
 set (FFTW3_LIBRARIES fftw3)
 set (FFTW3_LIBRARY_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/fftw/lib)
