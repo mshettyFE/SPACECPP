@@ -55,7 +55,7 @@ void Bunch::print_particles() const {
 }
 
 void Bunch::print() const {
-    std::cout << bunch_id << '\t'  << nRealPerSim << "\n";
+    std::cout << bunch_id << '\t'  << nRealPerSim << '\t' << sim_parts.size() <<  "\n";
 }
 
 void Bunch::write_data(std::string fname){

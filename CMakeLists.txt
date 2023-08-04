@@ -18,6 +18,7 @@ set(SOURCES src/main.cpp
   src/ValidateInput.cpp
   src/Parameters.cpp
   src/TimeEvolution.cpp
+  src/MPIHelper.cpp
 )
 
 # MPI stuff

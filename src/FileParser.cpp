@@ -25,6 +25,7 @@
 #include "ProbDist.h"
 #include "FileParser.h"
 #include "Parameters.h"
+#include "MPIHelper.h"
 
 bool ValidateYAMLWrapper(Parameters& Para, YAML::Node CurNode, std::string key, Type t, ValidityCheckingFlags flag, double boundary1, double boundary2){
 // Takes in a YAML Node, verifies that key-value pair exists, and checks that value can be converted to a double
@@ -429,8 +430,10 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
   if(!valid_py_trans){
     std::cerr << "Couldn't parse coordinate py_trans in " << fname <<  std::endl;
     return false;
-  }
+  }  
 
+    
+    
   for(int i=0; i< nbunches-gap; ++i){
     bunches.push_back(Bunch(npop,nRealPerSim, function_map));
   }
@@ -438,6 +441,8 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
     bunches.push_back(Bunch(0, nRealPerSim, function_map));
   }
 
+  
+    
 /*    
   std::stringstream f;
     {
