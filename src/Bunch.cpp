@@ -20,6 +20,11 @@
 
 #include "doctest.h"
 
+Bunch::Bunch(){
+  nRealPerSim = 1;
+  bunch_id = ++bunch_id_generator;
+}
+
 Bunch::Bunch(uint64_t nparticles, int nRealParticlesPerSim, std::unordered_map<Coords, std::unique_ptr<ProbDist>>& function_map, Parameters GlobalParas){
     if(nparticles <0){
       throw std::runtime_error("Bunch instantiated with fewer than 0. Need at least 0 (0 corresponds to empty rf bucket");

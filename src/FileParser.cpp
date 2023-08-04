@@ -7,12 +7,12 @@
 #include<utility>
 #include<unordered_map>
 #include <cmath>
-#include <fstream>
 
 #include "yaml-cpp/yaml.h"
 
 #include "cereal/archives/xml.hpp"
 #include "cereal/types/vector.hpp"
+#include "cereal/archives/portable_binary.hpp"
 
 #include "Cavity.h"
 #include "Constants.h"
@@ -430,28 +430,34 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
     std::cerr << "Couldn't parse coordinate py_trans in " << fname <<  std::endl;
     return false;
   }
+
   for(int i=0; i< nbunches-gap; ++i){
     bunches.push_back(Bunch(npop,nRealPerSim, function_map));
   }
   for(int i=nbunches-gap; i< nbunches; ++i){
     bunches.push_back(Bunch(0, nRealPerSim, function_map));
   }
-/*
+
+/*    
+  std::stringstream f;
     {
-  std::ofstream f;
-  f.open("Test.xml");
-  cereal::XMLOutputArchive archive(f);
-  Bunch b = Bunch(200,function_map);
-  b.print();
-  b.save(archive);
-  f.close();    
-        
-    std::ifstream is("Test.xml");
-    cereal::XMLInputArchive in_archive(is);
-    Bunch temp(1, function_map);
-    b.load(archive);
+  cereal::PortableBinaryOutputArchive archive(f);
+//  cereal::XMLOutputArchive archive(f);
+  Bunch b = Bunch(200,1,function_map);
+  archive(b);
+    }   
+
+    {
+    cereal::PortableBinaryInputArchive in_archive(f);
+//    cereal::XMLInputArchive in_archive(is);
+    Bunch temp;
     temp.print();
+    temp.print_particles();
+    in_archive(temp);
+    temp.print();
+    temp.print_particles();
     }
+    exit(-1);
 */
   return true;
 }

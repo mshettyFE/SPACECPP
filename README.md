@@ -14,7 +14,9 @@ chmod +x recompile.sh
 ./setup.sh
 ```
 
-what the above scripts does is first compile the dependencies: [yaml-cpp](https://github.com/jbeder/yaml-cpp) and [fftw](https://www.fftw.org/) (additional dependencies like [doc-test](https://github.com/doctest/doctest) and [cereal](https://github.com/USCiLab/cereal) are header only, and thus don't need to be seperately built). It then creates a build directory for the project and runs cmake and make to compile SPACECPP.
+On the off chance that the above doesn't work, the sticking point is probably that cmake cannot locate the mpicxx compiler for some reason. In this case, you need to edit `recompile.sh` such that `-DCMAKE_CXX_COMPILER=` flag of cmake points to the correct location of your mpicxx compiler.
+
+what the above scripts does is first compile the external dependencies: [yaml-cpp](https://github.com/jbeder/yaml-cpp) and [fftw](https://www.fftw.org/) (additional external dependencies like[cereal](https://github.com/USCiLab/cereal), [doc-test](https://github.com/doctest/doctest), and [TCLAP](https://github.com/mirror/tclap)  are header only, and thus don't need to be seperately built). It then creates a build directory for the project and runs cmake and make to compile SPACECPP.
 # Making Local Changes
 After the first compilation, if you want to make changes, you may need to recompile.
 ## Modifying Configuration Files

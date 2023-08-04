@@ -23,6 +23,7 @@ class Bunch{
     std::vector<Particle> sim_parts; // array of particles assigned to the bunch
 // Public functions
   public:
+    Bunch();
     Bunch(uint64_t nparticles, int nRealParticlesPerSim, std::unordered_map<Coords, std::unique_ptr<ProbDist>>& function_map, Parameters GlobalParas= Parameters());
     double MomentGeneratorTau(int moment_number) const ;
     double MomentGeneratorDelta(int moment_number) const ;
@@ -36,15 +37,10 @@ class Bunch{
     void FPUpdate(Parameters GlobalParas);
     void write_data(std::string fname);
 // serialization. see See https://stackoverflow.com/questions/61743418/im-getting-a-strange-error-when-i-try-to-do-serialization-with-cereal-in-c for why implementation is in header file
-    template <class Archive>
-    void save(Archive & archive) const
+    template<class Archive>
+    void serialize(Archive & archive)
     {
-      archive(bunch_id, CEREAL_NVP(sim_parts));
-    }
-    template <class Archive>
-    void load(Archive & archive)
-    {
-      archive(bunch_id, CEREAL_NVP(sim_parts));
+      archive(bunch_id, nRealPerSim, CEREAL_NVP(sim_parts));
     }
 
 // Private functions
