@@ -7,16 +7,19 @@ NOTE: Only tested on Linux.
 
 This software used [MPICH](https://www.mpich.org/documentation/guides/) as the MPI implementation. Please download if your organization doesn't already have it installed.
 
-Once MPICH is downloaded, you should be able to set everything up just run the following commands in the base directory of the repository:
+Once MPICH is downloaded, you should be able to set everything up just run the following commands in the base directory of the repository (works at NSLS-II cluster):
 ```
+module load accelerator
 chmod +x setup.sh
 chmod +x recompile.sh
 ./setup.sh
 ```
 
-On the off chance that the above doesn't work, the sticking point is probably that cmake cannot locate the mpicxx compiler for some reason. In this case, you need to edit `recompile.sh` such that `-DCMAKE_CXX_COMPILER=` flag of cmake points to the correct location of your mpicxx compiler.
+On the off chance that the above doesn't work, the sticking point is probably that cmake cannot locate the mpicxx compiler for some reason. In this case, you need to edit `recompile.sh` such that the `-DCMAKE_CXX_COMPILER=` flag of cmake points to the correct location of your mpicxx compiler.
 
 what the above scripts does is first compile the external dependencies: [yaml-cpp](https://github.com/jbeder/yaml-cpp) and [fftw](https://www.fftw.org/) (additional external dependencies like[cereal](https://github.com/USCiLab/cereal), [doc-test](https://github.com/doctest/doctest), and [TCLAP](https://github.com/mirror/tclap)  are header only, and thus don't need to be seperately built). It then creates a build directory for the project and runs cmake and make to compile SPACECPP.
+# Running Code
+use `submit.sh` script. Make sure you run `module load accelerator` if you haven't already
 # Making Local Changes
 After the first compilation, if you want to make changes, you may need to recompile.
 ## Modifying Configuration Files

@@ -16,7 +16,7 @@ class TimeEvolution{
     double relative_loss;
     std::mt19937 generator;
   public:
-    TimeEvolution(std::vector<std::unique_ptr<Cavity>>& cavities, std::vector<Bunch>& bunches, Parameters& GlobalParas);
+    TimeEvolution(std::vector<std::unique_ptr<Cavity>>& cavities, std::vector<Bunch>& in_bunches, Parameters& GlobalParas);
     double Voltage(double tau, int bunch_index);
     double Potential(double min_tau, double max_tau, int bunch_index, int steps);
     void PlotPotential(std::string fname, int bunch_index, double lower_x, double upper_x, int steps=100, int sub_steps=100);

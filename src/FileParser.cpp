@@ -8,6 +8,8 @@
 #include<unordered_map>
 #include <cmath>
 
+#include <mpi.h>
+
 #include "yaml-cpp/yaml.h"
 
 #include "cereal/archives/xml.hpp"
@@ -430,39 +432,85 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
   if(!valid_py_trans){
     std::cerr << "Couldn't parse coordinate py_trans in " << fname <<  std::endl;
     return false;
-  }  
-
-    
-    
-  for(int i=0; i< nbunches-gap; ++i){
-    bunches.push_back(Bunch(npop,nRealPerSim, function_map));
   }
-  for(int i=nbunches-gap; i< nbunches; ++i){
-    bunches.push_back(Bunch(0, nRealPerSim, function_map));
-  }
-
-  
     
-/*    
-  std::stringstream f;
-    {
-  cereal::PortableBinaryOutputArchive archive(f);
-//  cereal::XMLOutputArchive archive(f);
-  Bunch b = Bunch(200,1,function_map);
-  archive(b);
-    }   
+    // create boolean vector that specifies which bunches to fill and which to leave empty
+    std::vector<bool> locations = MPIHelper::bunch_locations(nbunches,gap);
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    // genreate the intervals on which each processor acts on
+    std::vector<std::tuple<int,int>> intervals = MPIHelper::generate_intervals(world_size, nbunches);
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+// For each processor, calculate the bunches assigned to it
+    std::tuple<int,int> range = intervals[world_rank];
+    int lower_bound_inclusive = std::get<0>(range);
+    int upper_bound_exclusive = std::get<1>(range);
+    std::vector<Bunch> temp_bunches;
 
-    {
-    cereal::PortableBinaryInputArchive in_archive(f);
-//    cereal::XMLInputArchive in_archive(is);
-    Bunch temp;
-    temp.print();
-    temp.print_particles();
-    in_archive(temp);
-    temp.print();
-    temp.print_particles();
+    for(int bunch_index = lower_bound_inclusive; bunch_index< upper_bound_exclusive; ++bunch_index){
+      if(world_rank == 0){
+// If this is the root process, then you can directly assign bunches to output vector of bunches
+        if(locations[bunch_index]){
+            bunches.push_back(Bunch(npop,nRealPerSim, function_map));
+        }
+        else{
+            bunches.push_back(Bunch(0,nRealPerSim, function_map)); 
+        }
+      }
+// Otherwise, you assign the list of bunches to a temporary vector
+      else{
+        if(locations[bunch_index]){
+            temp_bunches.push_back(Bunch(npop,nRealPerSim, function_map));
+        }
+        else{
+            temp_bunches.push_back(Bunch(0,nRealPerSim, function_map));      
+        }
+      }
     }
-    exit(-1);
-*/
+
+// serializes bunch data of each processor
+    std::string serialized_bunch_data = MPIHelper::SerializeData(temp_bunches);
+    if(world_rank==0){
+// have r00t processor generate the rest master list of buncheh (ie. Fill vector with empty bunches)
+      for(int i =upper_bound_exclusive; i< nbunches; ++i){
+        Bunch b;
+        bunches.push_back(b);
+      }
+    }
+// wait for everything to sync up again
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (world_rank != 0) {
+// If you are not the root process, you send the length of the message, as well as the message itself
+        uint64_t msg_length = serialized_bunch_data.length();
+  MPI_Send(&msg_length, 1, MPI_UINT64_T, 0, 0, MPI_COMM_WORLD);
+  MPI_Send(serialized_bunch_data.c_str(), msg_length , MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+    }
+    if (world_rank == 0) {
+// if you are the root process, you do other things...
+      for (int i = 1; i < world_size; i++) {
+        uint64_t serial_buffer_size;
+// Read in incoming message size
+        MPI_Recv(&serial_buffer_size, 1, MPI_UINT64_T, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+// create character buffer and read to buffer
+        char *buf = new char[serial_buffer_size];
+        MPI_Recv(buf, serial_buffer_size, MPI_CHAR, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+// convert to string and delete char buf
+        std::string recv_serial_data(buf,serial_buffer_size);
+        delete [] buf;
+// de-serialize data to temporary bunch buffer
+        std::vector<Bunch> bunch_buffer;
+        MPIHelper::DeserializeData(recv_serial_data,bunch_buffer);
+// Use the interval vector to figure where in global bunch we are placing the temporary bunch
+        range = intervals[i];
+        int lower_bound_inclusive = std::get<0>(range);
+        int upper_bound_exclusive = std::get<1>(range);
+
+        for(int bunch_index = lower_bound_inclusive; bunch_index< upper_bound_exclusive; ++bunch_index){
+          bunches[bunch_index] = bunch_buffer[bunch_index-lower_bound_inclusive];
+        }
+      }
+    }
+// At this point, only the root processor has all the bunch data. That is OK. In TimeEvolution, we will reassign the input vector of bunches to each processor again
   return true;
 }

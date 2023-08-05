@@ -16,6 +16,20 @@ namespace MPIHelper{
             count++;
         }
     }
+    
+    std::vector<bool> bunch_locations(int n_bunches, int gap){
+    // boolean vector containing information about where a bunch is located. True means a bunch exists, False means there is no bunch
+    // Currently set up so that the gap occurs with the last couple of rf buckets. Can modify if needed
+      std::vector<bool> locations;
+        for(int i=0; i< n_bunches-gap; ++i){
+          locations.push_back(true);
+        }
+        for(int i=n_bunches-gap; i< n_bunches; ++i){
+          locations.push_back(false);
+        }
+      return locations;
+    }
+
 
     std::vector<std::tuple<int,int>> generate_intervals(int world_size, int n_bunches){
     // stipulates which bunches get assigned to which processor assuming world_size processors and n_bunches bunches
@@ -106,6 +120,21 @@ TEST_CASE("Testing Generate Intervals") {
 // not evenly dividing case
   bunches = 1320;
   processors = 17;    
+  intervals_one  =   MPIHelper::generate_intervals(processors,bunches);
+  CHECK(intervals_one.size() == processors);
+  lower_most = std::get<0>(intervals_one[0]);
+  upper_most = std::get<1>(intervals_one[intervals_one.size()-1]);
+  CHECK(lower_most==0);
+  CHECK(upper_most==bunches);
+  for(int i=0; i< intervals_one.size()-1; ++i){
+    int upper_bound_lower_index = std::get<1>(intervals_one[i]);
+    int lower_bound_upper_index = std::get<0>(intervals_one[i+1]);
+    CHECK(upper_bound_lower_index==lower_bound_upper_index);
+  }
+  intervals_one.clear();
+// only 1 processor
+  bunches = 1320;
+  processors = 1;    
   intervals_one  =   MPIHelper::generate_intervals(processors,bunches);
   CHECK(intervals_one.size() == processors);
   lower_most = std::get<0>(intervals_one[0]);

@@ -10,6 +10,8 @@
 
 #include "fftw3.h"
 
+#include <mpi.h>
+
 #include "tclap/CmdLine.h"
 
 #include "Constants.h"
@@ -25,6 +27,8 @@
 #include "doctest.h"
 
 int main(int argc, char** argv){
+    // Start MPI
+  MPI_Init(NULL, NULL);
   std::string BunchParameterName;
   std::string CavityParameterName;
   std::string LatticeParameterName;
@@ -72,25 +76,6 @@ int main(int argc, char** argv){
   int res = ctx.run(); 
   return 0;
 #endif
-// MPI test
-/*
-  MPI_Init(NULL, NULL);
-    // Get the number of processes
-    int world_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-    // Get the rank of the process
-    int world_rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-    // Get the name of the processor
-    char processor_name[MPI_MAX_PROCESSOR_NAME];
-    int name_len;
-    MPI_Get_processor_name(processor_name, &name_len);
-    // Finalize the MPI environment.
-        printf("Hello world from processor %s, rank %d"
-           " out of %d processors\n",
-           processor_name, world_rank, world_size);
-    MPI_Finalize();
-*/
 // Read input parameters
   Parameters GlobalParameters = Parameters();
     bool f = ReadLatticeParameters(LatticeParameterName, GlobalParameters);
@@ -99,6 +84,7 @@ int main(int argc, char** argv){
       return -1;
   }
   else{
+    if(verbose)
     std::cout << "Sucessfully Parsed " << LatticeParameterName << std::endl;
   }
     f = ReadTimeEvolutionParameters(TimeEvolutionParameterName, GlobalParameters);
@@ -107,6 +93,7 @@ int main(int argc, char** argv){
       return -1;
   }
   else{
+    if(verbose)
     std::cout << "Sucessfully Parsed " << TimeEvolutionParameterName << std::endl;
   }
     f = ReadWakefieldParameters(WakefieldParameterName, GlobalParameters);
@@ -115,6 +102,7 @@ int main(int argc, char** argv){
       return -1;
   }
   else{
+    if(verbose)
     std::cout << "Sucessfully Parsed " << WakefieldParameterName << std::endl;
   }
 
@@ -129,6 +117,7 @@ int main(int argc, char** argv){
         return -1;
     }
     else{
+    if(verbose)
         std::cout << "Sucessfully Parsed " << CavityParameterName << std::endl;
     }
     if(verbose){
@@ -145,9 +134,9 @@ int main(int argc, char** argv){
       return -1;
     }
     else{
+      if(verbose)
       std::cout << "Sucessfully Parsed " << BunchParameterName << std::endl;
     }
-    bunches[0].write_data("TestBunch.csv");
     TimeEvolution t  = TimeEvolution(cavities, bunches, GlobalParameters);
     if(verbose){
       t.run_simulation(1,1,0,1);    
@@ -155,5 +144,6 @@ int main(int argc, char** argv){
     else{
       t.run_simulation(1,1,0,0);    
     }
+    MPI_Finalize();
   return 0;
 }

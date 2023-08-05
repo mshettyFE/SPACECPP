@@ -23,6 +23,7 @@ rm -rf build
 # create main executable
 cd ..
 mkdir build
-mv recompile.sh ./build/recompile.sh
+cp recompile.sh ./build/recompile.sh
+cp submit.sh ./build/submit.sh
 cd build
 ./recompile.sh

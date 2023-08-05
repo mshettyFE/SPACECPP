@@ -2,6 +2,7 @@
 #include "Bunch.h"
 #include "Cavity.h"
 #include "Parameters.h"
+#include "MPIHelper.h"
 
 #include <vector>
 #include <fstream>
@@ -10,17 +11,71 @@
 #include <chrono>
 #include <random>
 
-#ifdef MPI_FOUND
 #include <mpi.h>
-#endif
 
-TimeEvolution::TimeEvolution(std::vector<std::unique_ptr<Cavity>>& cavities, std::vector<Bunch>& bunches, Parameters& GlobalParas){
+TimeEvolution::TimeEvolution(std::vector<std::unique_ptr<Cavity>>& cavities, std::vector<Bunch>& in_bunches, Parameters& GlobalParas){
+  int world_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+// create input_bunch length variable that is either set to 0 or nbunches
+  int input_bunch_sizes = in_bunches.size();
+// broadcast number of bunches from root to the rest of the processors
+  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Bcast(&input_bunch_sizes, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+  // genreate the intervals on which each processor acts on. This is why we needed the aforementioned broadcast
+  std::vector<std::tuple<int,int>> intervals = MPIHelper::generate_intervals(world_size, input_bunch_sizes);
+  int world_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+// Since root processor has access to all bunches, can directly assign it's own bunches
+  if(world_rank==0){
+    std::tuple<int,int> range = intervals[0];
+    int lower_bound_inclusive = std::get<0>(range);
+    int upper_bound_exclusive = std::get<1>(range);
+    for(int bunch_index = lower_bound_inclusive; bunch_index < upper_bound_exclusive; ++bunch_index){
+      Bunches.push_back(in_bunches[bunch_index]);
+    }
+  }
+// synchronize all processes
+  MPI_Barrier(MPI_COMM_WORLD);
+  if(world_rank==0){
+    for(int i=1; i < world_size; ++i){
+      std::tuple<int,int> range = intervals[i];
+      int lower_bound_inclusive = std::get<0>(range);
+      int upper_bound_exclusive = std::get<1>(range);
+// copy over necessary bunches to a buffer
+      std::vector<Bunch> bunch_buffer;
+      for(int bunch_index = lower_bound_inclusive; bunch_index < upper_bound_exclusive; ++bunch_index){
+        bunch_buffer.push_back(in_bunches[bunch_index]);
+      }
+// serialize buffer data
+      std::string serialized_bunch_data = MPIHelper::SerializeData(bunch_buffer);
+// send over message to other processor of rank i
+      uint64_t msg_length = serialized_bunch_data.length();
+      MPI_Send(&msg_length, 1, MPI_UINT64_T, i, 0, MPI_COMM_WORLD);
+      MPI_Send(serialized_bunch_data.c_str(), msg_length , MPI_CHAR, i, 0, MPI_COMM_WORLD);
+    }
+  }
+// the other processors receive the bunches assigned by the root processor
+  else{
+      std::tuple<int,int> range = intervals[world_rank];
+      int lower_bound_inclusive = std::get<0>(range);
+      int upper_bound_exclusive = std::get<1>(range);
+      uint64_t serial_buffer_size;
+// Read in incoming message size from root
+      MPI_Recv(&serial_buffer_size, 1, MPI_UINT64_T, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+// create character buffer and read to buffer
+      char *buf = new char[serial_buffer_size];
+      MPI_Recv(buf, serial_buffer_size, MPI_CHAR, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+// convert to string and delete char buf
+      std::string recv_serial_data(buf,serial_buffer_size);
+      delete [] buf;
+// de-serialize data to local Bunches
+      MPIHelper::DeserializeData(recv_serial_data,Bunches);
+  }
+
   for (int i=0; i< cavities.size(); ++i){
       Cavities.push_back(std::move(cavities[i]));
   }
-    for(auto b : bunches){
-      Bunches.push_back(b);    
-    }
     GlobParas = GlobalParas;
     double loss_per_turn, Vrf;
     bool check = GlobParas.get_parameter("Uloss", loss_per_turn) && GlobParas.get_parameter("vrf", Vrf);
@@ -30,7 +85,7 @@ TimeEvolution::TimeEvolution(std::vector<std::unique_ptr<Cavity>>& cavities, std
     relative_loss = loss_per_turn/Vrf;
     auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
     generator.seed((unsigned long)seed);
-
+  MPI_Barrier(MPI_COMM_WORLD);
 }
 
 double TimeEvolution::Voltage(double tau, int bunch_index){
@@ -124,7 +179,12 @@ void TimeEvolution::PlotVoltage(std::string fname, int bunch_index, double lower
 }
 
 void TimeEvolution::run_simulation(bool HamiltonianFlag, bool FPFlag, bool WakefieldFlag, bool verbose){
-    std::cout << "Starting Simulation" << std::endl;
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    if(world_rank==0){
+      std::cout << "Starting Simulation..." << std::endl;
+      std::cout << "Rank\tCurTurn\tTotalTurn\tTiming(ms)" << std::endl;
+    }
     using std::chrono::high_resolution_clock;
     using std::chrono::duration;
     using std::chrono::milliseconds;
@@ -146,7 +206,7 @@ void TimeEvolution::run_simulation(bool HamiltonianFlag, bool FPFlag, bool Wakef
     auto t2 = high_resolution_clock::now();
     duration<double, std::milli> ms_double = t2 - t1;
     if(verbose){
-      std::cout << i << '\t' << nturns << '\t' << ms_double.count() <<  std::endl;    
+      std::cout << world_rank << '\t' << i << '\t' << nturns << '\t' << ms_double.count() <<  std::endl;    
     }
   }
 }
