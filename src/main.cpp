@@ -19,7 +19,11 @@
 #include "FileParser.h"
 #include "Bunch.h"
 #include "Parameters.h"
+#include "Wakefield.h"
 #include "TimeEvolution.h"
+
+// Comment out below to temporarily disable MPI. Use if you want to debug single processor logic
+#define MPI_ENABLED
 
 // Comment out "#define DOCTEST_CONFIG_DISABLE" line to enable unit tests
 #define DOCTEST_CONFIG_DISABLE
@@ -27,8 +31,9 @@
 #include "doctest.h"
 
 int main(int argc, char** argv){
-    // Start MPI
+  #ifdef MPI_ENABLED
   MPI_Init(NULL, NULL);
+  #endif
   std::string BunchParameterName;
   std::string CavityParameterName;
   std::string LatticeParameterName;
@@ -96,7 +101,9 @@ int main(int argc, char** argv){
     if(verbose)
     std::cout << "Sucessfully Parsed " << TimeEvolutionParameterName << std::endl;
   }
-    f = ReadWakefieldParameters(WakefieldParameterName, GlobalParameters);
+    
+    std::vector<Wakefield> WakefieldData;
+    f = ReadWakefieldParameters(WakefieldParameterName, WakefieldData, GlobalParameters);
   if(!f){
       std::cerr << "Couldn't read " << WakefieldParameterName << std::endl;
       return -1;
@@ -105,7 +112,7 @@ int main(int argc, char** argv){
     if(verbose)
     std::cout << "Sucessfully Parsed " << WakefieldParameterName << std::endl;
   }
-
+    
   if(verbose){
     GlobalParameters.print();
   }
@@ -144,6 +151,9 @@ int main(int argc, char** argv){
     else{
       t.run_simulation(1,1,0,0);    
     }
+  #ifdef MPI_ENABLED
     MPI_Finalize();
+  #endif
+
   return 0;
 }

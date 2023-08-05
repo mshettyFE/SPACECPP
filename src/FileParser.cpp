@@ -26,6 +26,7 @@
 #include "Quartic.h"
 #include "ProbDist.h"
 #include "FileParser.h"
+#include "Wakefield.h"
 #include "Parameters.h"
 #include "MPIHelper.h"
 
@@ -37,6 +38,10 @@ bool ValidateYAMLWrapper(Parameters& Para, YAML::Node CurNode, std::string key, 
     return false;
   }
   std::string val  = it.as<std::string>();
+  if(t==STRING){
+    Para.add_parameter(key,val,t);
+    return true;
+  }
   if(!ValidityChecking( val , flag, boundary1, boundary2)){
     std::cerr << "Couldn't parse " << val << std::endl;
     return false;
@@ -51,6 +56,10 @@ bool ValidateUnorderedMapWrapper(Parameters& Para, std::unordered_map<std::strin
     return false;
   }
   std::string val  = map[key];
+  if(t==STRING){
+    Para.add_parameter(key,val,t);
+    return true;
+  }
   if(!ValidityChecking( val , flag, boundary1, boundary2)){
     std::cerr << "Couldn't parse value of " << key << std::endl;
     return false;
@@ -203,7 +212,7 @@ bool ReadTimeEvolutionParameters(std::string fname, Parameters& Para){
   return output;
 }
 
-bool ReadWakefieldParameters(std::string fname, Parameters& Para){
+bool ReadWakefieldParameters(std::string fname, std::vector<Wakefield>& WakefieldData, Parameters& Para){
 // Read in contents of .yaml file containing lattice parameters
   YAML::Node config;
   try{
@@ -217,19 +226,23 @@ bool ReadWakefieldParameters(std::string fname, Parameters& Para){
 // rangetau must be greater than 0
     ValidateYAMLWrapper(Para, config, "rangetau", DOUBLE, MIN_EXCLUSIVE, 0) &&
 //Fourier Coefficients must be an integer and at least 1
-    ValidateYAMLWrapper(Para, config, "FourierCoeff", INT, MIN_INCLUSIVE, 1) &&
-// still need to figure out what these are...
-    ValidateYAMLWrapper(Para, config, "ng1", INT, MIN_INCLUSIVE, 1) &&
-    ValidateYAMLWrapper(Para, config, "ng2", INT, MIN_INCLUSIVE, 1) &&
-    ValidateYAMLWrapper(Para, config, "ng1g2", INT, MIN_INCLUSIVE, 1) &&
-    ValidateYAMLWrapper(Para, config, "npart", INT, MIN_INCLUSIVE, 1) &&
-    ValidateYAMLWrapper(Para, config, "ngridd", INT, MIN_INCLUSIVE, 1) &&
-    ValidateYAMLWrapper(Para, config, "NJ", INT, MIN_INCLUSIVE, 1) &&
-    ValidateYAMLWrapper(Para, config, "NG", INT, MIN_INCLUSIVE, 1) &&
-    ValidateYAMLWrapper(Para, config, "NTY", INT, MIN_INCLUSIVE, 1) &&
-    ValidateYAMLWrapper(Para, config, "nup", INT, MIN_INCLUSIVE, 1) &&
-    ValidateYAMLWrapper(Para, config, "nup1", INT, MIN_INCLUSIVE, 1) &&
-    ValidateYAMLWrapper(Para, config, "nharmh", INT, MIN_INCLUSIVE, 1);
+    ValidateYAMLWrapper(Para, config, "FourierCoeff", INT, MIN_INCLUSIVE, 1) && 
+    ValidateYAMLWrapper(Para, config, "TauWakeFile", STRING, IS_VALID) && 
+    ValidateYAMLWrapper(Para, config, "XWakeFile", STRING, IS_VALID) && 
+    ValidateYAMLWrapper(Para, config, "YWakeFile", STRING, IS_VALID);
+    if(!output){
+      return output;
+    }
+    std::string TauWakeFileName, XWakeFileName, YWakeFileName;
+    Para.get_parameter(std::string("TauWakeFile"),TauWakeFileName);
+    Para.get_parameter(std::string("XWakeFile"),XWakeFileName);
+    Para.get_parameter(std::string("YWakeFile"),YWakeFileName);
+    Wakefield tauW = Wakefield(TauWakeFileName);
+    Wakefield XW = Wakefield(XWakeFileName);
+    Wakefield YW = Wakefield(YWakeFileName);
+    WakefieldData.push_back(tauW);
+    WakefieldData.push_back(XW);
+    WakefieldData.push_back(YW);
   return output;
 }
 
