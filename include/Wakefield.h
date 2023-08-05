@@ -15,6 +15,8 @@ class Wakefield{
   private:
     std::vector<std::tuple<double,double>> discrete_data;
     std::string fname;
+    double min_tau;
+    double max_tau;
   public:
     Wakefield(std::string path);
     void print();

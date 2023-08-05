@@ -53,10 +53,11 @@ void Wakefield::read_file(std::string path){
   }
 // sort vector in ascending order, just in case they aren't in order
   std::sort(discrete_data.begin(), discrete_data.end()); 
-  double min_tau = std::get<0>(discrete_data[0]);
+  min_tau = std::get<0>(discrete_data[0]);
 // Make sure wakefield only defined on tau >0
   if(min_tau <0){
     std::string err_msg  = path + " is defined on tau values less than 0";
     throw std::runtime_error(err_msg);
   }
+  max_tau = std::get<0>(discrete_data[discrete_data.size()-1]);
 }

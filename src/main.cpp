@@ -23,10 +23,10 @@
 #include "TimeEvolution.h"
 
 // Comment out below to temporarily disable MPI. Use if you want to debug single processor logic
-#define MPI_ENABLED
+//#define MPI_ENABLED
 
 // Comment out "#define DOCTEST_CONFIG_DISABLE" line to enable unit tests
-#define DOCTEST_CONFIG_DISABLE
+//#define DOCTEST_CONFIG_DISABLE
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest.h"
 

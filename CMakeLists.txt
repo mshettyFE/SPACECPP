@@ -20,6 +20,7 @@ set(SOURCES src/main.cpp
   src/TimeEvolution.cpp
   src/MPIHelper.cpp
   src/Wakefield.cpp
+  src/Density.cpp
 )
 
 # MPI stuff

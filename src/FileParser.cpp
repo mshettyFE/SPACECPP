@@ -223,10 +223,12 @@ bool ReadWakefieldParameters(std::string fname, std::vector<Wakefield>& Wakefiel
     return false;
   }
   bool output = 
-// rangetau must be greater than 0
-    ValidateYAMLWrapper(Para, config, "rangetau", DOUBLE, MIN_EXCLUSIVE, 0) &&
+// nbins must be greater than 0
+    ValidateYAMLWrapper(Para, config, "nbins", INT, MIN_EXCLUSIVE, 0) &&
 //Fourier Coefficients must be an integer and at least 1
-    ValidateYAMLWrapper(Para, config, "FourierCoeff", INT, MIN_INCLUSIVE, 1) && 
+    ValidateYAMLWrapper(Para, config, "FourierCoeff", INT, MIN_INCLUSIVE, 1) &&
+// Gaussian Smoothing factor is at least 0
+    ValidateYAMLWrapper(Para, config, "smoothing_factor", INT, MIN_INCLUSIVE, 0) && 
     ValidateYAMLWrapper(Para, config, "TauWakeFile", STRING, IS_VALID) && 
     ValidateYAMLWrapper(Para, config, "XWakeFile", STRING, IS_VALID) && 
     ValidateYAMLWrapper(Para, config, "YWakeFile", STRING, IS_VALID);
