@@ -328,4 +328,12 @@ double Bunch::accept_reject(std::unique_ptr<ProbDist>& initial_dist, Parameters 
   return 0.0;
 }
 
+void Bunch::set_id(uint64_t new_id){
+  bunch_id = new_id;
+}
+
+uint64_t Bunch::get_id(){
+  return bunch_id;
+}
+
 uint64_t Bunch::bunch_id_generator = 0;

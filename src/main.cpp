@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <iomanip>
 #include <fstream>
+#include <filesystem>
 #include <sstream>
 #include <complex.h>
 
@@ -23,14 +24,16 @@
 #include "TimeEvolution.h"
 
 // Comment out below to temporarily disable MPI. Use if you want to debug single processor logic
-//#define MPI_ENABLED
+#define MPI_ENABLED
 
 // Comment out "#define DOCTEST_CONFIG_DISABLE" line to enable unit tests
-//#define DOCTEST_CONFIG_DISABLE
+#define DOCTEST_CONFIG_DISABLE
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest.h"
 
 int main(int argc, char** argv){
+  std::filesystem::path new_folder = data_folder_path;
+  std::filesystem::create_directories(new_folder);
   #ifdef MPI_ENABLED
   MPI_Init(NULL, NULL);
   #endif
@@ -39,6 +42,7 @@ int main(int argc, char** argv){
   std::string LatticeParameterName;
   std::string TimeEvolutionParameterName;
   std::string WakefieldParameterName;
+  std::string RunTag;
   bool verbose;
   try{
 // setting up TCLAP to parse command line
@@ -58,6 +62,9 @@ int main(int argc, char** argv){
 // Wakefield Parameters
     TCLAP::ValueArg<std::string> WakefieldFile("w","WakefieldFile","Input .yaml file for Wakefield Parameters",false,"../configs/WakefieldParameters.yaml","string");
     cmd.add( WakefieldFile );
+// Unique identifier for this run
+    TCLAP::ValueArg<std::string> RunIDTagCheck("r","RunTag","Identifier for this simulation run. Defaults to nothing",false,"","string");
+    cmd.add( RunIDTagCheck );
 // Verbose debugging flag
     TCLAP::SwitchArg VerboseDebugSwitch("d","debug","Print verbose debugging output", cmd, false);
     // reading in command line arguments
@@ -67,6 +74,7 @@ int main(int argc, char** argv){
     LatticeParameterName= LatticeFile.getValue();
     TimeEvolutionParameterName= TimeEvoFile.getValue();
     WakefieldParameterName= WakefieldFile.getValue();
+    RunTag =  RunIDTagCheck.getValue();
     verbose = VerboseDebugSwitch.getValue();
   }
   catch(TCLAP::ArgException &e)

@@ -2,6 +2,7 @@
 #include "Bunch.h"
 #include "Cavity.h"
 #include "Parameters.h"
+#include "Constants.h"
 #include "MPIHelper.h"
 
 #include <vector>
@@ -13,7 +14,8 @@
 
 #include <mpi.h>
 
-TimeEvolution::TimeEvolution(std::vector<std::unique_ptr<Cavity>>& cavities, std::vector<Bunch>& in_bunches, Parameters& GlobalParas){
+TimeEvolution::TimeEvolution(std::vector<std::unique_ptr<Cavity>>& cavities, std::vector<Bunch>& in_bunches, Parameters& GlobalParas, std::string add_to_front){
+  preappend = add_to_front;
   int world_size;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 // create input_bunch length variable that is either set to 0 or nbunches
@@ -207,6 +209,10 @@ void TimeEvolution::run_simulation(bool HamiltonianFlag, bool FPFlag, bool Wakef
     duration<double, std::milli> ms_double = t2 - t1;
     if(verbose){
       std::cout << world_rank << '\t' << i << '\t' << nturns << '\t' << ms_double.count() <<  std::endl;    
+    }
+    for(auto b: Bunches){
+      std::string fname = data_folder_path+"/"+preappend+"_Bunch_"+std::to_string(b.get_id())+"_turn_"+std::to_string(i)+".csv";
+      b.write_data(fname);
     }
   }
 }

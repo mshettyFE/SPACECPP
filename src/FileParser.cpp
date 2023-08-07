@@ -527,5 +527,11 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
       }
     }
 // At this point, only the root processor has all the bunch data. That is OK. In TimeEvolution, we will reassign the input vector of bunches to each processor again
+// we also need to reassign the bunch ids in the root processor so that when we send out the bunches again, each processor can write out the correct bunch
+    if(world_rank==0){
+      for(int i=0; i<bunches.size(); ++i){
+        bunches[i].set_id(i);
+      }
+    }
   return true;
 }

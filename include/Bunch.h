@@ -31,6 +31,8 @@ class Bunch{
     double MomentGeneratorPXTrans(int moment_number) const ;
     double MomentGeneratorYTrans(int moment_number) const ;
     double MomentGeneratorPYTrans(int moment_number) const ;
+    void set_id(uint64_t new_id);
+    uint64_t get_id();
     void print() const ;
     void print_particles() const ;
     void HamiltonianUpdate(Parameters GlobalParas);
