@@ -48,7 +48,7 @@ double Particle::getPXTrans(){return px_trans;};
 double Particle::getYTrans(){return y_trans;};
 double Particle::getPYTrans(){return py_trans;};
 std::tuple<double,double,double,double, double,double> Particle::getCoordinates(){
-  std::tuple<double,double,double,double, double ,double >values = std::make_tuple(delta,tau,x_trans,px_trans, y_trans, py_trans);
+  std::tuple<double,double,double,double, double ,double >values = std::make_tuple(tau,delta,x_trans,px_trans, y_trans, py_trans);
   return values;
 }
 

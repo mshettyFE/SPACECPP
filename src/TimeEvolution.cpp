@@ -280,7 +280,7 @@ G. Bassi, A. Blednykh and V. Smaluk, Phys. Rev. Accel. Beams
     y_trans_new = y_trans_old*cos(y_trans_phase)+py_trans_old*sin(y_trans_phase);
     py_trans_new = -y_trans_old*sin(y_trans_phase)+py_trans_old*cos(y_trans_phase);
 // updating particle coordinate
-    Bunches[bunch_index].sim_parts[i].update(delta_new, tau_new, x_trans_new, px_trans_new, y_trans_new, py_trans_new);
+    Bunches[bunch_index].sim_parts[i].update(tau_new, delta_new, x_trans_new, px_trans_new, y_trans_new, py_trans_new);
   }
 }
 void TimeEvolution::FPUpdate(int bunch_index){

@@ -89,6 +89,9 @@ int main(int argc, char** argv){
   int res = ctx.run(); 
   return 0;
 #endif
+// get processor number
+  int world_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 // Read input parameters
   Parameters GlobalParameters = Parameters();
     bool f = ReadLatticeParameters(LatticeParameterName, GlobalParameters);
@@ -97,7 +100,7 @@ int main(int argc, char** argv){
       return -1;
   }
   else{
-    if(verbose)
+    if(verbose && world_rank==0)
     std::cout << "Sucessfully Parsed " << LatticeParameterName << std::endl;
   }
     f = ReadTimeEvolutionParameters(TimeEvolutionParameterName, GlobalParameters);
@@ -106,7 +109,7 @@ int main(int argc, char** argv){
       return -1;
   }
   else{
-    if(verbose)
+    if(verbose&& world_rank==0)
     std::cout << "Sucessfully Parsed " << TimeEvolutionParameterName << std::endl;
   }
     
@@ -117,11 +120,11 @@ int main(int argc, char** argv){
       return -1;
   }
   else{
-    if(verbose)
+    if(verbose&& world_rank==0)
     std::cout << "Sucessfully Parsed " << WakefieldParameterName << std::endl;
   }
     
-  if(verbose){
+  if(verbose&& world_rank==0){
     GlobalParameters.print();
   }
 // Read in cavity configuration
@@ -132,10 +135,10 @@ int main(int argc, char** argv){
         return -1;
     }
     else{
-    if(verbose)
+    if(verbose&& world_rank==0)
         std::cout << "Sucessfully Parsed " << CavityParameterName << std::endl;
     }
-    if(verbose){
+    if(verbose&& world_rank==0){
       for(const auto& cav : cavities){
         cav->print();
       }
@@ -149,7 +152,7 @@ int main(int argc, char** argv){
       return -1;
     }
     else{
-      if(verbose)
+      if(verbose&& world_rank==0)
       std::cout << "Sucessfully Parsed " << BunchParameterName << std::endl;
     }
     TimeEvolution t  = TimeEvolution(cavities, bunches, GlobalParameters);

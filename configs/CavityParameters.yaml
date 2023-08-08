@@ -1,18 +1,14 @@
 ---
 # we make a list of cavities with various properties
 
-# To define a new cavity, we go the the next line , indent 2 spaces, adding a - , and then type the name of the cavity
-# On the immediate next line, indenting by 2 spaces and specifying it's type
-# The possible types are
-#   - "active"
-#   - "passive"
-
-# active is where you assume that the cavity is beam-loading compensated (ie. phase and amplitude of cavity are not coupled. Generator amplitude and phase are such that you get a constant max voltage and synchronous phase in the cavity)
+# "active" is where you assume that the cavity is beam-loading compensated (ie. phase and amplitude of cavity are not coupled. Generator amplitude and phase are such that you get a constant max voltage and synchronous phase in the cavity)
 
 # passive is when there is no external generator associated with the cavity, only induced voltage from the beam. You can't compensate the beam here
 
-# Afterwards, you need to specify numerical values of the parameters needed to define the voltage of the cavity
+# Y need to specify numerical values of the parameters needed to define the voltage of the cavity
 # all parameters need to be indented 2 spaces with respect to the cavity name
+
+# For either type of cavity, you need to specify the type and give it a name (not necessarily unique)
 
 # For an active configuration, you need:
 #  - r: relative voltage with respect to V_rf
@@ -26,6 +22,7 @@
 #  - Quality Factor
 #  - detuning frequency
 #  - order of cavity
+#  - Beta
 
 # Below is an example defining the main cavity. This is an active cavity of order 1 with r=1
 cavities:

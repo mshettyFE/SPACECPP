@@ -532,6 +532,7 @@ bool ReadBunchParameters(std::string fname, std::vector<Bunch>& bunches ){
       for(int i=0; i<bunches.size(); ++i){
         bunches[i].set_id(i);
       }
+    bunches[0].write_data("InitialDistBunch0.csv");
     }
   return true;
 }

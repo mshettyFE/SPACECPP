@@ -1,5 +1,6 @@
 #!/bin/bash
-#
+# Sets up environment variables to be used with sbatch
+# To run, input the command `sbatch submit.sh`
 #SBATCH --job-name=SPACE
 #SBATCH --error=%x.%J.err 
 #SBATCH --output=%x.%J.out

@@ -1,44 +1,38 @@
-npop: 2000                       #Number of particles 
-nRealPerSim: 1
-nbunches: 1320                      #Number of bunches
-gap: 0
-# Arrival time in picoseconds (ps)
-tau:
+npop: 2000                       # Number of simulation particles 
+nRealPerSim: 1                   # Number of real particles per simulation particle (used in wakefield calculation)
+nbunches: 1320                   # Number of bunches
+gap: 0                           # the number of bunches that are empty at the end
+tau:                             # Arrival time in picoseconds (ps)
   prob_dist: Gauss
   mu: 0
   sigma: 30 
   lower: -100 
   upper: 100
-# normalized momentum deviation (unitless)
-delta:
+delta:                           # normalized momentum deviation (unitless)
   prob_dist: Gauss
   mu: 0
   sigma: 1
   lower: -5
   upper: 5
-# transverse x position
-x_trans:
+x_trans:                         # transverse x position
   prob_dist: Gauss
   mu: 0
   sigma: 1
   lower: -5
   upper: 5
-# transverse x momentum
-px_trans:
+px_trans:                        # transverse x momentum
   prob_dist: Gauss
   mu: 0
   sigma: 1
   lower: -5
   upper: 5
-# transverse y position
-y_trans:
+y_trans:                        # transverse y position
   prob_dist: Gauss
   mu: 0
   sigma: 1
   lower: -5
   upper: 5
-# transverse  y momentum
-py_trans:
+py_trans:                       # transverse  y momentum
   prob_dist: Gauss
   mu: 0
   sigma: 1

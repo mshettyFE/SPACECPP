@@ -1,7 +1,7 @@
-nbins: 1000 # Number of bins. Used in discretizing wakefield function, as well as constructing densities
-smoothing_factor: 1 #gaussian smoothing suppressor
-FourierCoeff: 50  # Number of fourier coefficient in long distance calculation (unused)
-# Wakefield data files (tau should be in units of picoseconds.  Y is in arbitray units?)
+nbins: 1000                                 # Number of bins. Used in discretizing wakefield function, as well as constructing densities
+smoothing_factor: 1                         # gaussian smoothing suppressor
+FourierCoeff: 50                            # Number of fourier coefficient in long distance calculation (unused)
+# Wakefield data files (tau should be in units of picoseconds.  Y is in arbitray units)
 TauWakeFile: ../configs/TauWakefield.csv
 XWakeFile: ../configs/XWakefield.csv
 YWakeFile: ../configs/YWakefield.csv
