@@ -1,7 +1,7 @@
 # SPACECPP
 C++ Implementation of SPACE code (self-consistent parallel algorithm for collective effects) as seen [here](https://journals.aps.org/prab/pdf/10.1103/PhysRevAccelBeams.19.024401).
 # Downloading
-Just use `git clone` command with HTTPS URL
+Just use `git clone` command with HTTPS URL (https://github.com/mshettyFE/SPACECPP.git)
 # Compiling
 NOTE: Only tested on Linux.
 
