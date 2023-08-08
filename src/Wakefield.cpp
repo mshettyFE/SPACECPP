@@ -10,11 +10,13 @@
 
 
 Wakefield::Wakefield(std::string path){
+// reads in data to path
   fname = path;
   read_file(path);
 }
 
 void Wakefield::print(){
+// print discrete data
   std::cout << fname << std::endl;
   for(auto pt : discrete_data){
     std::cout << std::get<0>(pt) << '\t' << std::get<1>(pt) << std::endl;

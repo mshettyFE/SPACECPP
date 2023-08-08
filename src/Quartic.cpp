@@ -33,7 +33,7 @@ double Quartic::get_upper(){
 }
 
 double Quartic::draw(double x, Parameters glob_paras){
-// return unnormalized gaussian
+// return unormalized distribution of the form exp(-con*x^4)
   double con = func_paras.get_parameter("constant",con);
   return exp(-con*x*x*x*x);
 }

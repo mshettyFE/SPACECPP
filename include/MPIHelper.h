@@ -10,6 +10,8 @@
 #include "cereal/types/string.hpp"
 #include "cereal/archives/binary.hpp"
 
+// Group of helper functions to assign with MPI integration
+
 namespace MPIHelper{
 // Adapted from the following StackOverflow post: https://stackoverflow.com/questions/59568209/mpi-send-send-structure-as-vector
 // serializes/deserealizes data as a string (which is basically a character array) so that it can be passed via MPI

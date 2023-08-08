@@ -18,7 +18,7 @@
     //used to scale input time to voltages (1e-12 corresponds to units of picoseconds for tau)
     const double time_scaling_factor = 1e-12;
 
-// Output file names
+// Output file path where Bunch data will be stored
    const std::string data_folder_path = "./data";
 
 // Possible checks you can perform on a string to check if it can be converted to a double

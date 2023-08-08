@@ -9,10 +9,14 @@
 #include <tuple>
 #include "Constants.h"
 
+// Function to model various densities derived from Bunch data as a histogram
+// Defined at middle of bins
 class Density{
   private:
+// lower and upper bounds of distribution for the histogram
     double lower_bound_tau = std::numeric_limits<double>::infinity();
     double upper_bound_tau = -1.0*lower_bound_tau;
+// number of bins of histogram
     int nbins;
     Coords density_coordinate;
   public:

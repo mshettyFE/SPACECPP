@@ -3,6 +3,8 @@
 
 #include "Parameters.h"
 
+// ABC that models a mathematical function
+
 class MathFunction{
   protected:
     Parameters func_paras;

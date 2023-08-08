@@ -9,26 +9,27 @@
 
 namespace MPIHelper{
 
-    void print_intervals(std::vector<std::tuple<int,int>> intervals){
-        int count = 0;
-        for(auto interval : intervals){
-            std::cout << count << '\t' << std::get<0>(interval) << '\t' << std::get<1>(interval) << '\t' << std::endl;
-            count++;
-        }
+void print_intervals(std::vector<std::tuple<int,int>> intervals){
+// prints intervals under consideration
+    int count = 0;
+    for(auto interval : intervals){
+        std::cout << count << '\t' << std::get<0>(interval) << '\t' << std::get<1>(interval) << '\t' << std::endl;
+        count++;
     }
+}
     
-    std::vector<bool> bunch_locations(int n_bunches, int gap){
-    // boolean vector containing information about where a bunch is located. True means a bunch exists, False means there is no bunch
-    // Currently set up so that the gap occurs with the last couple of rf buckets. Can modify if needed
-      std::vector<bool> locations;
-        for(int i=0; i< n_bunches-gap; ++i){
-          locations.push_back(true);
-        }
-        for(int i=n_bunches-gap; i< n_bunches; ++i){
-          locations.push_back(false);
-        }
-      return locations;
+std::vector<bool> bunch_locations(int n_bunches, int gap){
+// boolean vector containing information about where a bunch is located. True means a bunch exists, False means there is no bunch
+// Currently set up so that the gap occurs with the last couple of rf buckets. Can modify if needed (perhaps with another config file?)
+  std::vector<bool> locations;
+    for(int i=0; i< n_bunches-gap; ++i){
+      locations.push_back(true);
     }
+    for(int i=n_bunches-gap; i< n_bunches; ++i){
+      locations.push_back(false);
+    }
+  return locations;
+}
 
 
     std::vector<std::tuple<int,int>> generate_intervals(int world_size, int n_bunches){

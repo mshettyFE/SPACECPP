@@ -4,7 +4,7 @@
 #include <cstdint>
 
 // Class that defines a simulation particle
-// Basically a glorified struct at the moment
+// Basically a glorified struct with a print statement, getters and setters, plus serialization
 class Particle{
   private:
     uint64_t part_id;

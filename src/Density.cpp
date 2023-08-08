@@ -68,7 +68,7 @@ Density::Density(Bunch b, Coords coordinate, int bins){
           break;
     }
     int index = getBinNumber(current_tau);
-// if the value if out of range, ignore it and move onto next particle
+// if the particle if out of range, ignore it and move onto next particle
     if(index ==-1){
       continue;
     }
@@ -82,6 +82,7 @@ Density::Density(Bunch b, Coords coordinate, int bins){
 }
 
 int Density::getBinNumber(double val){
+// utility function to map val to bin number
   if(val > upper_bound_tau){
     return -1;
   }
@@ -99,7 +100,7 @@ int Density::getBinNumber(double val){
 }
 
 double Density::MomentGeneratorDiscrete(int moment_number){
-// Calculate nth moment of the density
+// Calculate nth moment of the density. Nearly identical to Bunch implementation
   double moment = 0.0;
   if(moment_number < 0){
     throw std::runtime_error("Invalid moment number (must be at least 0)");

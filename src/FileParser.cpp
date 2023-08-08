@@ -136,8 +136,6 @@ bool ReadLatticeParameters(std::string fname, Parameters& Para){
     ValidateYAMLWrapper(Para, config, "f0", DOUBLE, MIN_EXCLUSIVE, 0) &&
 // Aver_curr must be greater than 0
     ValidateYAMLWrapper(Para, config, "Aver_curr", DOUBLE, MIN_EXCLUSIVE, 0) &&
-// gap is an integer that is atleast 0
-    ValidateYAMLWrapper(Para, config, "gap", INT, MIN_INCLUSIVE, 0) &&
 // sig_d must be greater than 0
     ValidateYAMLWrapper(Para, config, "sig_d", DOUBLE, MIN_EXCLUSIVE, 0) &&
 // alpha_C must be greater than 0

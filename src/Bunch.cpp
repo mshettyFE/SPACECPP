@@ -21,11 +21,13 @@
 #include "doctest.h"
 
 Bunch::Bunch(){
+// empty bunch. Is used to initialize array of Bunches
   nRealPerSim = 1;
   bunch_id = ++bunch_id_generator;
 }
 
 Bunch::Bunch(uint64_t nparticles, int nRealParticlesPerSim, std::unordered_map<Coords, std::unique_ptr<ProbDist>>& function_map, Parameters GlobalParas){
+// sanity check on the number of particles
     if(nparticles <0){
       throw std::runtime_error("Bunch instantiated with fewer than 0. Need at least 0 (0 corresponds to empty rf bucket");
     }
@@ -154,6 +156,8 @@ double Bunch::MomentGeneratorDiscrete(Coords coordinate, int moment_number) cons
 //  std::cout << coordinate << '\t' << moment_number << '\t' << moment << std::endl;
   return moment;
 }
+
+// Wrapper functions that calculates kth moment along their respective coordinate
 
 double Bunch::MomentGeneratorTau(int moment_number) const{
   double v  = MomentGeneratorDiscrete(TAU, moment_number);

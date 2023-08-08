@@ -6,7 +6,7 @@
 #include <tuple>
 
 // class that models wakefield function data taking from an input file
-// Does the following:
+// currently only reads in data. Still need to do the following:
 // calculates discrete FFT
 //  Performs cubic spline to enable smooth interpolation of function
 // can resample to a different distribution via cubic spline resampling

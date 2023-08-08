@@ -15,6 +15,7 @@
 #include <mpi.h>
 
 TimeEvolution::TimeEvolution(std::vector<std::unique_ptr<Cavity>>& cavities, std::vector<Bunch>& in_bunches, Parameters& GlobalParas, std::string add_to_front){
+// assigns preappend to TimeEvolution
   preappend = add_to_front;
   int world_size;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -91,6 +92,7 @@ TimeEvolution::TimeEvolution(std::vector<std::unique_ptr<Cavity>>& cavities, std
 }
 
 double TimeEvolution::Voltage(double tau, int bunch_index){
+// get voltage due to all cavities
   double sum = -relative_loss;
   double E0, T0;
   bool check = GlobParas.get_parameter("E0",E0) && GlobParas.get_parameter("T0",T0);
@@ -101,6 +103,7 @@ double TimeEvolution::Voltage(double tau, int bunch_index){
 }
 
 double TimeEvolution::integrate(int bunch_index, double lower, double upper, int steps){
+// uses the trapezoid rule to calculate discrete integral from lower to upper
   double f_low = Voltage(lower,bunch_index);
   double f_high = Voltage(upper,bunch_index);
   double sum = 0.5*(f_low+f_high);
@@ -114,6 +117,7 @@ double TimeEvolution::integrate(int bunch_index, double lower, double upper, int
 }
 
 double TimeEvolution::Potential(double min_tau, double max_tau, int bunch_index, int steps){
+// Wrapper around integral
     if( (bunch_index >= Bunches.size()) ||(bunch_index <0) ){
         throw std::runtime_error("Bunch index out of range");
     }
@@ -127,6 +131,7 @@ double TimeEvolution::Potential(double min_tau, double max_tau, int bunch_index,
 }
 
 void TimeEvolution::PlotPotential(std::string fname, int bunch_index, double lower_bound, double upper_bound,  int steps, int sub_steps){
+// saves current potential as .csv file
   if( (bunch_index >= Bunches.size()) ||(bunch_index <0) ){
       throw std::runtime_error("Bunch index out of range");
   }
@@ -158,6 +163,7 @@ void TimeEvolution::PlotPotential(std::string fname, int bunch_index, double low
 }
 
 void TimeEvolution::PlotVoltage(std::string fname, int bunch_index, double lower_bound, double upper_bound, int steps){
+// saves current voltage as .csv file
   if( (bunch_index >= Bunches.size()) ||(bunch_index <0) ){
       throw std::runtime_error("Bunch index out of range");
   }
@@ -181,12 +187,14 @@ void TimeEvolution::PlotVoltage(std::string fname, int bunch_index, double lower
 }
 
 void TimeEvolution::run_simulation(bool HamiltonianFlag, bool FPFlag, bool WakefieldFlag, bool verbose){
+// runs simulation for nturns
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     if(world_rank==0){
       std::cout << "Starting Simulation..." << std::endl;
       std::cout << "Rank\tCurTurn\tTotalTurn\tTiming(ms)" << std::endl;
     }
+// timing namespaces
     using std::chrono::high_resolution_clock;
     using std::chrono::duration;
     using std::chrono::milliseconds;
@@ -202,14 +210,18 @@ void TimeEvolution::run_simulation(bool HamiltonianFlag, bool FPFlag, bool Wakef
   if(nturns==0){
     throw std::runtime_error("Invalid number of turns when attempting to run simulation");  
   }
+// actual simulation part
   for(int i=0; i<nturns; ++i){
+// perform update for 1 turn and time how long it takes in milliseconds
     auto t1 = high_resolution_clock::now();
     update(i,HamiltonianFlag,FPFlag,WakefieldFlag);
     auto t2 = high_resolution_clock::now();
     duration<double, std::milli> ms_double = t2 - t1;
+// logging statements
     if(verbose){
       std::cout << world_rank << '\t' << i << '\t' << nturns << '\t' << ms_double.count() <<  std::endl;    
     }
+// After update, write Bunch data to specified data folder
     for(auto b: Bunches){
       std::string fname = data_folder_path+"/"+preappend+"_Bunch_"+std::to_string(b.get_id())+"_turn_"+std::to_string(i)+".csv";
       b.write_data(fname);
@@ -219,6 +231,7 @@ void TimeEvolution::run_simulation(bool HamiltonianFlag, bool FPFlag, bool Wakef
 
 
 void TimeEvolution::update(int turn_number, bool HamiltonianFlag,bool FPFlag, bool WakefieldFlag){
+// Wrapper function that performs Hamiltonian update, FP update and Wakefield update (TBD)
   if( !(HamiltonianFlag || FPFlag || WakefieldFlag )){
     std::cout << "No update made" << std::endl;
     return;

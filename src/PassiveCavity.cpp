@@ -18,6 +18,7 @@ PassiveCavity::PassiveCavity(std::string cav_name, double unloaded_shunt, double
 
 double PassiveCavity::Voltage(double tau, const Bunch bunch, Parameters Para){
 // Assumes uniform filling. Couldn't find a formula for general case
+// see https://accelconf.web.cern.ch/icap2018/papers/tupaf12.pdf
   double I0, omega0;
   int nharm;
   bool check1 = Para.get_parameter("Aver_curr",I0);

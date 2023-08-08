@@ -8,6 +8,8 @@
 #include <string>
 #include <tuple>
 
+// Class that groups all the input parameters in 1 place. Allows one to specify how the parameter should be interpreted (as an INT, DOUBLE, or STRING). Does validity checking that a parameter can be correctly interpreted
+
 class Parameters{
   private:
     // map containing the variable name as the keys

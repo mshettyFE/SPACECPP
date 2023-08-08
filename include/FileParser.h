@@ -30,6 +30,8 @@ bool ValidateUnorderedMapWrapper(Parameters& Para, std::unordered_map<std::strin
 // Validate that a probability distribution has the correct parameters
 bool ValidateCoordinateWrapper(Coords coordinate, YAML::Node CurNode, std::unordered_map<Coords, std::unique_ptr<ProbDist>>& function_map, Parameters GlobalParas = Parameters());
 
+// self explainatory
+
 bool ReadLatticeParameters(std::string fname, Parameters& Para);
 
 bool ReadTimeEvolutionParameters(std::string fname, Parameters& Para);

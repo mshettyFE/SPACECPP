@@ -3,6 +3,8 @@
 #include "MathFunction.h"
 #include "Parameters.h"
 
+// Derived MathFunction class that models a Gaussian
+
 class Gaussian : public MathFunction {
   public:
     Gaussian(Parameters gauss_paras, Parameters glob_paras = Parameters());

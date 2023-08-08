@@ -1,7 +1,16 @@
+# we define some parameters that are shared between all coordinates
 npop: 2000                       # Number of simulation particles 
 nRealPerSim: 1                   # Number of real particles per simulation particle (used in wakefield calculation)
 nbunches: 1320                   # Number of bunches
 gap: 0                           # the number of bunches that are empty at the end
+# The format here is that for each coordinate (all 6 of them), we define a probability distribution as well as its associated parameters.
+# All distributions should have a lower and upper attribute defined
+
+#Currently, only the following are implemented:
+#  - Guassians
+#    - Parameters: Sigma, Mu
+#  - Quartic potential (ie. equillibrium density of the form exp(-a \tau^2)
+#    - Parameters: Constant
 tau:                             # Arrival time in picoseconds (ps)
   prob_dist: Gauss
   mu: 0
