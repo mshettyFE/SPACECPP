@@ -1,4 +1,5 @@
 #!/bin/bash
+# script to compile dependencies and build SPACE
 # create FFTW library
 tar -xzf fftw.tar.gz
 mkdir fftw
