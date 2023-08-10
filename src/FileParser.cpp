@@ -12,6 +12,8 @@
 
 #include "yaml-cpp/yaml.h"
 
+#include "Eigen/Dense"
+
 #include "cereal/archives/xml.hpp"
 #include "cereal/types/vector.hpp"
 #include "cereal/archives/portable_binary.hpp"

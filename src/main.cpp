@@ -15,6 +15,8 @@
 
 #include "tclap/CmdLine.h"
 
+#include "Eigen/Dense"
+
 #include "Constants.h"
 #include "ValidateInput.h"
 #include "FileParser.h"

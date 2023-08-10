@@ -24,6 +24,8 @@ set(SOURCES src/main.cpp
   src/Density.cpp
 )
 
+
+
 # MPI stuff
 find_package(MPI REQUIRED COMPONENTS CXX)
   include_directories(MPI_INCLUDE_PATH)
@@ -48,10 +50,12 @@ file(GLOB FPSource src/FileParser.cpp)
 set(FileParseName ${CMAKE_PROJECT_NAME}FileParser)
 add_library(${FileParseName} SHARED ${FPSource})
 target_include_directories (${CMAKE_PROJECT_NAME}FileParser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories (${CMAKE_PROJECT_NAME}FileParser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/Eigen)
 target_link_libraries(${CMAKE_PROJECT_NAME}FileParser yaml)
 # Final executable building
 add_executable(SPACE ${SOURCES})
 target_link_libraries(SPACE ${FileParseName})
 target_link_libraries(SPACE ${FFTW3_LIBRARIES})
+target_include_directories (SPACE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/Eigen)
 # Prints out all the source files, so that you know if you included everything
 message(STATUS "${SOURCES}")
