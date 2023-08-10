@@ -11,7 +11,12 @@ The program currently does the following:
 
 The intention of the code was to study the effects of higher harmonic cavities on bunch length.
 # Downloading
-Just use `git clone` command with HTTPS URL (https://github.com/mshettyFE/SPACECPP.git). If you want to make your own changes (or implement the features in [TODO.md](./TODO.md)), then please fork the repository.
+Just use run the following command in whatever directory you want to save the repository at:
+```
+git clone --recurse-submodules https://github.com/mshettyFE/SPACECPP.git
+```
+
+ If you want to make your own changes (or implement the features in [TODO.md](./TODO.md)), then please fork the repository.
 # Compiling
 NOTE: Only tested on Linux.
 
