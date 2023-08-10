@@ -16,13 +16,13 @@ Just use run the following command in whatever directory you want to save the re
 git clone --recurse-submodules https://github.com/mshettyFE/SPACECPP.git
 ```
 
- If you want to make your own changes (or implement the features in [TODO.md](./TODO.md)), then please fork the repository.
+ If you want to make your own changes (or implement the features in [TODO.md](./TODO.md)), then please [fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) the repository and [make a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request).
 # Compiling
 NOTE: Only tested on Linux.
 
 This software used [MPICH](https://www.mpich.org/documentation/guides/) as the MPI implementation. Please download if your organization doesn't already have it installed.
 
-Once MPICH is downloaded, and assuming you already have the cluster setup, you should be able to set everything up just run the following commands in the base directory of the repository (works at NSLS-II cluster):
+Once MPICH is downloaded, and assuming you already have the cluster setup, you should be able to set everything up just run the following commands in the base directory of the repository(SPACECPP folder):
 ```
 module load accelerator
 chmod +x setup.sh
@@ -30,6 +30,8 @@ chmod +x recompile.sh
 chmod +x submit.sh
 ./setup.sh
 ```
+
+This was tested on the NSLS-II cluster.
 
 On the off chance that the above doesn't work, the sticking point is probably that cmake cannot locate the mpicxx compiler for some reason. In this case, you need to edit `recompile.sh` such that the `-DCMAKE_CXX_COMPILER=` flag of cmake points to the correct location of your mpicxx compiler. At NSLS-II, this probably means that you forgot to run `module load accelerator` on your submit node.
 ## Building Your Own Cluster
